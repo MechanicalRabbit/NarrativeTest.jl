@@ -1,0 +1,17 @@
+# Some tests with errors
+
+We let the first test pass:
+
+    (3+4)*6     #-> 42
+
+But the next test should fail:
+
+    2+2         #-> 5
+
+This test should raise an exception:
+
+    sqrt(-1)    #-> 0.0 + 1.0im
+
+Finally, the last test is ill-formed:
+
+    #-> test code is missing

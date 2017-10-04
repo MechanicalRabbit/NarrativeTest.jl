@@ -1,5 +1,4 @@
-using NarrativeTest
-using Base.Test
+#!/usr/bin/env julia
 
-# write your own tests here
-@test 1 == 2
+using NarrativeTest
+runtests()
