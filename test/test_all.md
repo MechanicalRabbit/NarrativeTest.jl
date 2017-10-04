@@ -10,7 +10,7 @@ The main entry point of `NarrativeTest` is the function `runtests()`.  It
 accepts a list of Markdown files.  Each file is parsed to extract and run the
 embedded test suite.
 
-    ans = runtests(["./test/sample_good.md_"]);
+    ans = runtests(["sample_good.md_"]);
     #=>
     Tests passed: 3
     TESTING SUCCESSFUL!
@@ -24,17 +24,17 @@ If all tests passed, `runtests()` returns `true`.
 If any of the tests fail or an ill-formed test case is detected, `runtests()`
 reports the problem and returns `false`.
 
-    ans = runtests(["./test/sample_bad.md_"]);
+    ans = runtests(["sample_bad.md_"]);
     #=>
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Test failed at ./test/sample_bad.md_, line 9:
+    Test failed at sample_bad.md_, line 9:
         2+2
     Expected output:
         5
     Actual output:
         4
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Test failed at ./test/sample_bad.md_, line 13:
+    Test failed at sample_bad.md_, line 13:
         sqrt(-1)
     Expected output:
         0.0 + 1.0im
@@ -44,7 +44,7 @@ reports the problem and returns `false`.
         Stacktrace:
          [1] sqrt(::Int64) at …
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error at ./test/sample_bad.md_, line 17:
+    Error at sample_bad.md_, line 17:
         missing test code
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Tests passed: 1
@@ -60,13 +60,13 @@ To implement the `runtests.jl` script, invoke `runtests()` without arguments.
 In this form, `runtests()` runs the tests specified as command-line parameters
 and exits with an appropriate exit code.
 
-    run(`julia -e 'using NarrativeTest; runtests()' ./test/sample_good.md_`)
+    run(`julia -e 'using NarrativeTest; runtests()' sample_good.md_`)
     #=>
     ⋮
     TESTING SUCCESSFUL!
     =#
 
-    run(`julia -e 'using NarrativeTest; runtests()' ./test/sample_bad.md_`)
+    run(`julia -e 'using NarrativeTest; runtests()' sample_bad.md_`)
     #=>
     ⋮
     TESTING UNSUCCESSFUL!
@@ -85,21 +85,21 @@ import the respective API.
 Function `parsemd()` loads a Markdown file and returns an array of the embedded
 test cases.
 
-    suite = parsemd("./test/sample_bad.md_")
+    suite = parsemd("sample_bad.md_")
     display(suite)
     #=>
     4-element Array{NarrativeTest.AbstractTest,1}:
-     NarrativeTest.Test(NarrativeTest.Location("./test/sample_bad.md_", 5), "(3+4)*6\n", "42\n")
-     NarrativeTest.Test(NarrativeTest.Location("./test/sample_bad.md_", 9), "2+2\n", "5\n")
-     NarrativeTest.Test(NarrativeTest.Location("./test/sample_bad.md_", 13), "sqrt(-1)\n", "0.0 + 1.0im\n")
-     NarrativeTest.BrokenTest(NarrativeTest.Location("./test/sample_bad.md_", 17), "missing test code")
+     NarrativeTest.Test(NarrativeTest.Location("sample_bad.md_", 5), "(3+4)*6\n", "42\n")
+     NarrativeTest.Test(NarrativeTest.Location("sample_bad.md_", 9), "2+2\n", "5\n")
+     NarrativeTest.Test(NarrativeTest.Location("sample_bad.md_", 13), "sqrt(-1)\n", "0.0 + 1.0im\n")
+     NarrativeTest.BrokenTest(NarrativeTest.Location("sample_bad.md_", 17), "missing test code")
     =#
 
-    suite = parsemd("./test/sample_missing.md_")
+    suite = parsemd("sample_missing.md_")
     display(suite)
     #=>
     1-element Array{NarrativeTest.AbstractTest,1}:
-     NarrativeTest.BrokenTest(NarrativeTest.Location("./test/sample_missing.md_", 0), "SystemError: … ")
+     NarrativeTest.BrokenTest(NarrativeTest.Location("sample_missing.md_", 0), "SystemError: … ")
     =#
 
 Function `parsemd()` recognizes two types of Markdown code blocks: indented and
@@ -262,7 +262,7 @@ We can run individual tests using the function `runtest()`.
 
 Function `runtest()` accepts a test case object and returns the test result.
 
-    suite = parsemd("./test/sample_bad.md_")
+    suite = parsemd("sample_bad.md_")
     results = map(runtest, filter(t -> t isa NarrativeTest.Test, suite))
     display(results)
     #=>

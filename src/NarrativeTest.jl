@@ -214,7 +214,7 @@ function runtests()
     if !isempty(ARGS)
         args = ARGS
     else
-        base = relpath(dirname(PROGRAM_FILE))
+        base = relpath(dirname(abspath(PROGRAM_FILE)))
         for (root, dirs, files) in walkdir(base)
             for file in files
                 if splitext(file)[2] == ".md"
@@ -234,25 +234,28 @@ function runtests(files; out::IO=STDOUT, err::IO=STDERR)
     for file in files
         n = 0
         print(err, indicator(file, n))
-        for test in parsemd(file)
-            if test isa BrokenTest
-                print(err, CLRL)
-                print(out, SEPARATOR, test)
-                print(err, indicator(file, n))
-                errors += 1
-            elseif test isa Test
-                res = runtest(test)
-                if res isa Pass
-                    passed += 1
-                elseif res isa Fail
+        suite = parsemd(file)
+        cd(dirname(abspath(file))) do
+            for test in suite
+                if test isa BrokenTest
                     print(err, CLRL)
-                    print(out, SEPARATOR, res)
+                    print(out, SEPARATOR, test)
                     print(err, indicator(file, n))
-                    failed += 1
+                    errors += 1
+                elseif test isa Test
+                    res = runtest(test)
+                    if res isa Pass
+                        passed += 1
+                    elseif res isa Fail
+                        print(err, CLRL)
+                        print(out, SEPARATOR, res)
+                        print(err, indicator(file, n))
+                        failed += 1
+                    end
                 end
+                n += 1
+                print(err, MORE)
             end
-            n += 1
-            print(err, MORE)
         end
         print(err, CLRL)
     end
