@@ -2,12 +2,12 @@ using Documenter
 using NarrativeTest
 
 makedocs(
-    modules = [NarrativeTest]
-)
+    modules = [NarrativeTest],
+    doctest = true)
 
-# Documenter can also automatically deploy documentation to gh-pages.
-# See "Hosting Documentation" and deploydocs() in the Documenter manual
-# for more information.
-#=deploydocs(
-    repo = "<repository url>"
-)=#
+deploydocs(
+    deps = Deps.pip("mkdocs", "python-markdown-math"),
+    repo = "github.com/xitology/NarrativeTest.jl.git",
+    julia = "0.6",
+    osname = "linux",
+    repo = "<repository url>")
