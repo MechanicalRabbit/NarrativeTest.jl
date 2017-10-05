@@ -1,3 +1,7 @@
+if Pkg.installed("Documenter") == nothing
+    Pkg.add("Documenter")
+end
+
 using Documenter
 using NarrativeTest
 
