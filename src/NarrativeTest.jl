@@ -7,6 +7,8 @@ __precompile__()
 
 module NarrativeTest
 
+using Compat
+
 export
     runtests
 
@@ -19,10 +21,7 @@ end
 
 Base.convert(::Type{Location}, file::String) = Location(file, 0)
 
-function Base.show(io::IO, loc::Location)
-    if haskey(io, :compact)
-        return invoke(show, Tuple{typeof(io), Any}, io, loc)
-    end
+function Base.show(io::IO, ::MIME"text/plain", loc::Location)
     print(io, loc.file)
     if loc.line > 0
         print(io, ", line $(loc.line)")
@@ -42,11 +41,10 @@ struct Test <: AbstractTest
     expect::String
 end
 
-function Base.show(io::IO, test::Test)
-    if haskey(io, :compact)
-        return invoke(show, Tuple{typeof(io), Any}, io, test)
-    end
-    println(io, "Test case at $(test.loc):")
+function Base.show(io::IO, mime::MIME"text/plain", test::Test)
+    print(io, "Test case at ")
+    show(io, mime, test.loc)
+    println(io, ":")
     println(io, indented(test.code))
     println(io, "Expected output:")
     println(io, indented(test.expect))
@@ -62,11 +60,10 @@ end
 BrokenTest(loc, exc::Exception) =
     BrokenTest(loc, sprint(showerror, exc))
 
-function Base.show(io::IO, err::BrokenTest)
-    if haskey(io, :compact)
-        return invoke(show, Tuple{typeof(io), Any}, io, err)
-    end
-    println(io, "Error at ", err.loc, ":")
+function Base.show(io::IO, mime::MIME"text/plain", err::BrokenTest)
+    print(io, "Error at ")
+    show(io, mime, err.loc)
+    println(io, ":")
     println(io, indented(err.msg))
 end
 
@@ -81,11 +78,10 @@ struct Pass <: AbstractResult
     output::String
 end
 
-function Base.show(io::IO, pass::Pass)
-    if haskey(io, :compact)
-        return invoke(show, Tuple{typeof(io), Any}, io, pass)
-    end
-    println(io, "Test passed at $(pass.test.loc):")
+function Base.show(io::IO, mime::MIME"text/plain", pass::Pass)
+    print(io, "Test passed at ")
+    show(io, mime, pass.test.loc)
+    println(io, ":")
     println(io, indented(pass.test.code))
     println(io, "Expected output:")
     println(io, indented(pass.test.expect))
@@ -101,11 +97,10 @@ struct Fail <: AbstractResult
     trace::StackTrace
 end
 
-function Base.show(io::IO, fail::Fail)
-    if haskey(io, :compact)
-        return invoke(show, Tuple{typeof(io), Any}, io, fail)
-    end
-    println(io, "Test failed at $(fail.test.loc):")
+function Base.show(io::IO, mime::MIME"text/plain", fail::Fail)
+    print(io, "Test failed at ")
+    show(io, mime, fail.test.loc)
+    println(io, ":")
     println(io, indented(fail.test.code))
     println(io, "Expected output:")
     println(io, indented(fail.test.expect))
@@ -124,7 +119,7 @@ struct Summary
     errors::Int
 end
 
-function Base.show(io::IO, sum::Summary)
+function Base.show(io::IO, mime::MIME"text/plain", sum::Summary)
     if sum.passed > 0
         println(io, "Tests passed: ", sum.passed)
     end
@@ -175,7 +170,7 @@ const SEPARATOR = "~"^72 * "\n"
 
 const INDENT = " "^4
 
-function indented(str::String)
+function indented(str::AbstractString)
     inp = IOBuffer(str)
     out = IOBuffer()
     first = true
@@ -188,7 +183,7 @@ function indented(str::String)
             print(out, INDENT, line)
         end
     end
-    return String(out)
+    return String(take!(out))
 end
 
 # Implementation of `test/runtests.jl`.
@@ -227,45 +222,47 @@ function runtests()
     exit(!runtests(args))
 end
 
-function runtests(files; out::IO=STDOUT, err::IO=STDERR)
+function runtests(files)
     passed = 0
     failed = 0
     errors = 0
     for file in files
         n = 0
-        print(err, indicator(file, n))
+        print(STDERR, indicator(file, n))
         suite = parsemd(file)
         cd(dirname(abspath(file))) do
             for test in suite
                 if test isa BrokenTest
-                    print(err, CLRL)
-                    print(out, SEPARATOR, test)
-                    print(err, indicator(file, n))
+                    print(STDERR, CLRL)
+                    print(SEPARATOR)
+                    display(test)
+                    print(STDERR, indicator(file, n))
                     errors += 1
                 elseif test isa Test
                     res = runtest(test)
                     if res isa Pass
                         passed += 1
                     elseif res isa Fail
-                        print(err, CLRL)
-                        print(out, SEPARATOR, res)
-                        print(err, indicator(file, n))
+                        print(STDERR, CLRL)
+                        print(SEPARATOR)
+                        display(res)
+                        print(STDERR, indicator(file, n))
                         failed += 1
                     end
                 end
                 n += 1
-                print(err, MORE)
+                print(STDERR, MORE)
             end
         end
-        print(err, CLRL)
+        print(STDERR, CLRL)
     end
     summary = Summary(passed, failed, errors)
     success = failed == 0 && errors == 0
     if !success
-        print(out, SEPARATOR)
+        print(SEPARATOR)
     end
-    print(out, summary)
-    println(err, success ? SUCCESS : FAILURE)
+    display(summary)
+    println(STDERR, success ? SUCCESS : FAILURE)
     return success
 end
 
@@ -477,7 +474,7 @@ function runtest(test::Test)
     orig_stderr = STDERR
     pipe = Pipe()
     Base.link_pipe(pipe; julia_only_read=true, julia_only_write=false)
-    io = IOContext(pipe.in, limit=true)
+    io = IOContext(pipe.in, :limit=>true)
     redirect_stdout(pipe.in)
     redirect_stderr(pipe.in)
     pushdisplay(TextDisplay(io))
@@ -513,7 +510,7 @@ function runtest(test::Test)
         end
         @async begin
             # Read the output of the test.
-            output = readstring(pipe.out)
+            output = read(pipe.out, String)
             close(pipe.out)
         end
     end
@@ -534,7 +531,7 @@ runtest(loc, code, expect) = runtest(Test(loc, code, expect))
 
 # Convert expected output block to a regex pattern.
 
-function expect2regex(pattern::String)
+function expect2regex(pattern::AbstractString)
     buf = IOBuffer()
     space = false
     skipspace = false
@@ -565,7 +562,7 @@ function expect2regex(pattern::String)
         end
     end
     print(buf, "\\z")
-    return Regex(String(buf))
+    return Regex(String(take!(buf)))
 end
 
 end

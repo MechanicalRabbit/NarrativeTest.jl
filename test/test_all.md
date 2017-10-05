@@ -39,10 +39,10 @@ reports the problem and returns `false`.
     Expected output:
         0.0 + 1.0im
     Actual output:
-        ERROR: DomainError:
-        sqrt will only return a complex result if called with a complex argument. Try sqrt(complex(x)).
+        ERROR: DomainError …
+        sqrt will only return a complex result if called with a complex argument. …
         Stacktrace:
-         [1] sqrt( … ) at …
+         ⋮
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Error at sample_bad.md_, line 17:
         missing test code
@@ -111,21 +111,21 @@ fenced.
             These test cases are embedded in an indented code block.
 
                 (3+4)*6
-                \#-> 42
+                $("#->") 42
 
                 2+2
-                \#-> 5
+                $("#->") 5
 
             The following test cases are embedded in a fenced code block.
             ```
             print(2^16)
-            \#-> 65526
+            $("#->") 65526
 
             sqrt(-1)
-            \#-> 0.0 + 1.0im
+            $("#->") 0.0 + 1.0im
             ```
             """))
-    foreach(print, suite)
+    foreach(display, suite)
     #=>
     Test case at <input>, line 3:
         (3+4)*6
@@ -153,9 +153,9 @@ It is an error if a fenced code block is not closed.
             Incomplete fenced code block is an error.
             ```
             (3+4)*6
-            \#-> 42
+            $("#->") 42
             """))
-    foreach(print, suite)
+    foreach(display, suite)
     #=>
     Error at <input>, line 5:
         incomplete fenced code block
@@ -168,13 +168,13 @@ recognizes the comment `#-> …` as single-line expected output and the comment
     suite = parsejl(
         "<input>",
         IOBuffer("""
-            2+2     \#-> 4
+            2+2     $("#->") 4
 
             print(2^16)
-            \#-> 65526
+            $("#->") 65526
 
             display(collect('A':'Z'))
-            \#=>
+            $("#=>")
             26-element Array{Char,1}:
              'A'
              'B'
@@ -182,7 +182,7 @@ recognizes the comment `#-> …` as single-line expected output and the comment
              'Z'
             =#
             """))
-    foreach(print, suite)
+    foreach(display, suite)
     #=>
     Test case at <input>, line 1:
         2+2
@@ -212,7 +212,7 @@ A test case may have no expected output.
 
             @assert y ≈ 0.5
             """))
-    foreach(print, suite)
+    foreach(display, suite)
     #=>
     Test case at <input>, line 1:
         x = pi/6
@@ -227,9 +227,9 @@ However, it is an error to have expected output block without test code.
     suite = parsejl(
         "<input>",
         IOBuffer("""
-            \#-> 42
+            $("#->") 42
             """))
-    foreach(print, suite)
+    foreach(display, suite)
     #=>
     Error at <input>, line 1:
         missing test code
@@ -241,14 +241,14 @@ It is also an error if a multi-line output block is not closed.
         "<input>",
         IOBuffer("""
             display(collect('A':'Z'))
-            \#=>
+            $("#=>")
             26-element Array{Char,1}:
              'A'
              'B'
              ⋮
              'Z'
             """))
-    foreach(print, suite)
+    foreach(display, suite)
     #=>
     Error at <input>, line 8:
         incomplete multiline comment block
@@ -270,13 +270,14 @@ Function `runtest()` accepts a test case object and returns the test result.
     3-element Array{NarrativeTest.AbstractResult,1}:
      NarrativeTest.Pass(NarrativeTest.Test( … , "(3+4)*6\n", "42\n"), "42")
      NarrativeTest.Fail(NarrativeTest.Test( … , "2+2\n", "5\n"), "4", StackFrame[])
-     NarrativeTest.Fail(NarrativeTest.Test( … , "sqrt(-1)\n", "0.0 + 1.0im\n"), "ERROR: DomainError:\n … ", StackFrame[sqrt( … ) at … ])
+     NarrativeTest.Fail(NarrativeTest.Test( … , "sqrt(-1)\n", "0.0 + 1.0im\n"), "ERROR: DomainError …\n …", StackFrame[ … ])
     =#
 
 `runtest()` captures the content of the standard output and error streams and
 compares it with the expected test result.
     
-    runtest("<input>", """println("Hello World!")\n""", "Hello World!\n")
+    result = runtest("<input>", """println("Hello World!")\n""", "Hello World!\n")
+    display(result)
     #=>
     Test passed at <input>:
         println("Hello World!")
@@ -289,7 +290,8 @@ compares it with the expected test result.
 `runtest()` also shows the value produced by the last statement of the test
 code.
 
-    runtest("<input>", "(3+4)*6\n", "42\n")
+    result = runtest("<input>", "(3+4)*6\n", "42\n")
+    display(result)
     #=>
     Test passed at <input>:
         (3+4)*6
@@ -299,7 +301,8 @@ code.
         42
     =#
 
-    runtest("<input>", "2+2\n", "5\n")
+    result = runtest("<input>", "2+2\n", "5\n")
+    display(result)
     #=>
     Test failed at <input>:
         2+2
@@ -311,7 +314,8 @@ code.
 
 However, if the produced value is equal to `nothing`, it is not displayed.
 
-    runtest("<input>", "nothing\n", "\n")
+    result = runtest("<input>", "nothing\n", "\n")
+    display(result)
     #=>
     Test passed at <input>:
         ⋮
@@ -320,13 +324,15 @@ However, if the produced value is equal to `nothing`, it is not displayed.
 You can also suppress displaying the value by ending the test code with `;`, or
 by not providing the expected output.
 
-    runtest("<input>", "(3+4)*6;\n", "\n")
+    result = runtest("<input>", "(3+4)*6;\n", "\n")
+    display(result)
     #=>
     Test passed at <input>:
         ⋮
     =#
 
-    runtest("<input>", "(3+4)*6\n", "")
+    result = runtest("<input>", "(3+4)*6\n", "")
+    display(result)
     #=>
     Test passed at <input>:
         ⋮
@@ -335,22 +341,24 @@ by not providing the expected output.
 When the test raises an exception, the error message (but not the stack trace)
 is included with the output.
 
-    runtest("<input>", "sqrt(-1)\n", "ERROR: DomainError:\n … ")
+    result = runtest("<input>", "sqrt(-1)\n", "ERROR: DomainError …\n …")
+    display(result)
     #=>
     Test passed at <input>:
         sqrt(-1)
     Expected output:
-        ERROR: DomainError:
+        ERROR: DomainError …
          …
     Actual output:
-        ERROR: DomainError:
-        sqrt will only return a complex result if called with a complex argument. Try sqrt(complex(x)).
+        ERROR: DomainError …
+        sqrt will only return a complex result if called with a complex argument. …
     =#
 
 In the expected output, we can use symbol `…` to replace any number of
 characters in a line, and symbol `⋮` to replace any number of lines.
 
-    runtest("<input>", "print(collect('A':'Z'))\n", "['A', 'B', …, 'Z']\n")
+    result = runtest("<input>", "print(collect('A':'Z'))\n", "['A', 'B', …, 'Z']\n")
+    display(result)
     #=>
     Test passed at <input>:
         print(collect('A':'Z'))
@@ -360,7 +368,8 @@ characters in a line, and symbol `⋮` to replace any number of lines.
         ['A', 'B', 'C', …, 'Y', 'Z']
     =#
 
-    runtest("<input>", "display(collect('A':'Z'))\n", "26-element Array{Char,1}:\n ⋮\n")
+    result = runtest("<input>", "display(collect('A':'Z'))\n", "26-element Array{Char,1}:\n ⋮\n")
+    display(result)
     #=>
     Test passed at <input>:
         display(collect('A':'Z'))
