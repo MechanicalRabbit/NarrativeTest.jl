@@ -42,7 +42,7 @@ reports the problem and returns `false`.
         ERROR: DomainError:
         sqrt will only return a complex result if called with a complex argument. Try sqrt(complex(x)).
         Stacktrace:
-         [1] sqrt(::Int64) at …
+         [1] sqrt( … ) at …
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Error at sample_bad.md_, line 17:
         missing test code
@@ -173,13 +173,13 @@ recognizes the comment `#-> …` as single-line expected output and the comment
             print(2^16)
             \#-> 65526
 
-            display(collect(1:10))
+            display(collect('A':'Z'))
             \#=>
-            10-element Array{Int64,1}:
-              1
-              2
-              ⋮
-             10
+            26-element Array{Char,1}:
+             'A'
+             'B'
+             ⋮
+             'Z'
             =#
             """))
     foreach(print, suite)
@@ -193,13 +193,13 @@ recognizes the comment `#-> …` as single-line expected output and the comment
     Expected output:
         65526
     Test case at <input>, line 6:
-        display(collect(1:10))
+        display(collect('A':'Z'))
     Expected output:
-        10-element Array{Int64,1}:
-          1
-          2
-          ⋮
-         10
+        26-element Array{Char,1}:
+         'A'
+         'B'
+         ⋮
+         'Z'
     =#
 
 A test case may have no expected output.
@@ -240,16 +240,17 @@ It is also an error if a multi-line output block is not closed.
     suite = parsejl(
         "<input>",
         IOBuffer("""
-            display(collect(1:10))
+            display(collect('A':'Z'))
             \#=>
-            10-element Array{Int64,1}:
-              1
-              2
-              ⋮
+            26-element Array{Char,1}:
+             'A'
+             'B'
+             ⋮
+             'Z'
             """))
     foreach(print, suite)
     #=>
-    Error at <input>, line 7:
+    Error at <input>, line 8:
         incomplete multiline comment block
     =#
 
@@ -269,7 +270,7 @@ Function `runtest()` accepts a test case object and returns the test result.
     3-element Array{NarrativeTest.AbstractResult,1}:
      NarrativeTest.Pass(NarrativeTest.Test( … , "(3+4)*6\n", "42\n"), "42")
      NarrativeTest.Fail(NarrativeTest.Test( … , "2+2\n", "5\n"), "4", StackFrame[])
-     NarrativeTest.Fail(NarrativeTest.Test( … , "sqrt(-1)\n", "0.0 + 1.0im\n"), "ERROR: DomainError:\n … ", StackFrame[sqrt(::Int64) at … ])
+     NarrativeTest.Fail(NarrativeTest.Test( … , "sqrt(-1)\n", "0.0 + 1.0im\n"), "ERROR: DomainError:\n … ", StackFrame[sqrt( … ) at … ])
     =#
 
 `runtest()` captures the content of the standard output and error streams and
@@ -349,28 +350,28 @@ is included with the output.
 In the expected output, we can use symbol `…` to replace any number of
 characters in a line, and symbol `⋮` to replace any number of lines.
 
-    runtest("<input>", "print(collect(1:10))\n", "[1, 2, …, 10]\n")
+    runtest("<input>", "print(collect('A':'Z'))\n", "['A', 'B', …, 'Z']\n")
     #=>
     Test passed at <input>:
-        print(collect(1:10))
+        print(collect('A':'Z'))
     Expected output:
-        [1, 2, …, 10]
+        ['A', 'B', …, 'Z']
     Actual output:
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        ['A', 'B', 'C', …, 'Y', 'Z']
     =#
 
-    runtest("<input>", "display(collect(1:10))\n", "10-element Array{Int64,1}:\n  ⋮\n")
+    runtest("<input>", "display(collect('A':'Z'))\n", "26-element Array{Char,1}:\n ⋮\n")
     #=>
     Test passed at <input>:
-        display(collect(1:10))
+        display(collect('A':'Z'))
     Expected output:
-        10-element Array{Int64,1}:
-          ⋮
+        26-element Array{Char,1}:
+         ⋮
     Actual output:
-        10-element Array{Int64,1}:
-          1
-          2
-          ⋮
-         10
+        26-element Array{Char,1}:
+         'A'
+         'B'
+         ⋮
+         'Z'
     =#
 
