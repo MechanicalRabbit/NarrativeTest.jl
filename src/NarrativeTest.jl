@@ -476,7 +476,7 @@ function runtest(test::Test)
     orig_stdout = STDOUT
     orig_stderr = STDERR
     pipe = Pipe()
-    Base.link_pipe(pipe; julia_only_read=true, julia_only_write=true)
+    Base.link_pipe(pipe; julia_only_read=true, julia_only_write=false)
     io = IOContext(pipe.in, limit=true)
     redirect_stdout(pipe.in)
     redirect_stderr(pipe.in)
