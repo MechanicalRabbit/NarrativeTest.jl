@@ -6,8 +6,8 @@ that combines the narrative with the test code and expected output.*
 [![Linux/OSX Build Status][travis-img]][travis-url]
 [![Windows Build Status][appveyor-img]][appveyor-url]
 [![Code Coverage Status][codecov-img]][codecov-url]
-[![Latest Documentation][doc-latest-img]][doc-latest-url]
 [![Open Issues][issues-img]][issues-url]
+[![Latest Documentation][doc-latest-img]][doc-latest-url]
 [![MIT License][license-img]][license-url]
 
 
@@ -45,7 +45,7 @@ example, add a file `test/test_sample.md` with the following content:
 
 Verify that an expression evaluates to the expected value:
 
-    (3+4)*6         #-> 42
+    6(3+4)          #-> 42
 
 Check if some code produces the expected output:
 
@@ -101,9 +101,9 @@ The NarrativeTest package is licensed under the [MIT License][license-url].
 [appveyor-url]: https://ci.appveyor.com/project/xitology/narrativetest-jl/branch/master
 [codecov-img]: https://codecov.io/gh/xitology/NarrativeTest.jl/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/xitology/NarrativeTest.jl
-[doc-latest-img]: https://img.shields.io/badge/doc-latest-blue.svg
-[doc-latest-url]: https://xitology.github.io/NarrativeTest.jl/latest/
 [issues-img]: https://img.shields.io/github/issues/xitology/NarrativeTest.jl.svg
 [issues-url]: https://github.com/xitology/NarrativeTest.jl/issues
+[doc-latest-img]: https://img.shields.io/badge/doc-latest-blue.svg
+[doc-latest-url]: https://xitology.github.io/NarrativeTest.jl/latest/
 [license-img]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-url]: https://raw.githubusercontent.com/xitology/NarrativeTest.jl/master/LICENSE.md

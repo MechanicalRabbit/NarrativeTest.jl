@@ -1,10 +1,12 @@
-# Testing NarrativeTest
+# Test Suite
 
-## Running the test suite
-
-We start with loading the module and importing its public API.
+This is the test suite for NarrativeTest.jl.  We start it with loading the
+module to import its public API.
 
     using NarrativeTest
+
+
+## Running the tests
 
 The main entry point of `NarrativeTest` is the function `runtests()`.  It
 accepts a list of Markdown files.  Each file is parsed to extract and run the
@@ -75,7 +77,8 @@ and exits with an appropriate exit code.
     ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
     =#
 
-# Extracting embedded test cases
+
+## Extracting test cases
 
 We can extract individual test cases from Markdown and Julia files.  Let us
 import the respective API.
@@ -256,7 +259,8 @@ It is also an error if a multi-line output block is not closed.
         incomplete multiline comment block
     =#
 
-# Running individual tests
+
+## Running one test
 
 We can run individual tests using the function `runtest()`.
 
@@ -277,7 +281,7 @@ Function `runtest()` accepts a test case object and returns the test result.
 
 `runtest()` captures the content of the standard output and error streams and
 compares it with the expected test result.
-    
+
     result = runtest("<input>", """println("Hello World!")\n""", "Hello World!\n")
     display(result)
     #=>

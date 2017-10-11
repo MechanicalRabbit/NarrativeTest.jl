@@ -1,3 +1,5 @@
+#!/usr/bin/env julia
+
 if Pkg.installed("Documenter") == nothing
     Pkg.add("Documenter")
 end
@@ -5,12 +7,18 @@ end
 using Documenter
 using NarrativeTest
 
+# Highlight indented code blocks as Julia code.
+Base.Markdown.Code(code) = Base.Markdown.Code("julia", code)
+
 makedocs(
-    modules = [NarrativeTest],
-    doctest = true)
+    format = :html,
+    sitename = "NarrativeTest.jl",
+    modules = [NarrativeTest])
 
 deploydocs(
-    deps = Deps.pip("mkdocs", "python-markdown-math"),
     repo = "github.com/xitology/NarrativeTest.jl.git",
     julia = "0.6",
-    osname = "linux")
+    osname = "linux",
+    target = "build",
+    deps = nothing,
+    make = nothing)
