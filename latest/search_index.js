@@ -2,6 +2,38 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "index.html#",
+    "page": "Home",
+    "title": "Home",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "index.html#NarrativeTest.jl-Documentation-1",
+    "page": "Home",
+    "title": "NarrativeTest.jl Documentation",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "index.html#Contents-1",
+    "page": "Home",
+    "title": "Contents",
+    "category": "section",
+    "text": "Pages = [\n    \"guide.md\",\n    \"reference.md\",\n    \"test.md\",\n]"
+},
+
+{
+    "location": "index.html#Index-1",
+    "page": "Home",
+    "title": "Index",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "guide.html#",
     "page": "Usage Guide",
     "title": "Usage Guide",
     "category": "page",
@@ -9,11 +41,59 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#Usage-Guide-1",
+    "location": "guide.html#Usage-Guide-1",
     "page": "Usage Guide",
     "title": "Usage Guide",
     "category": "section",
-    "text": "Documentation for NarrativeTest.jl"
+    "text": "Documentation for NarrativeTest.jl."
+},
+
+{
+    "location": "reference.html#",
+    "page": "API Reference",
+    "title": "API Reference",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "reference.html#NarrativeTest.runtests",
+    "page": "API Reference",
+    "title": "NarrativeTest.runtests",
+    "category": "Function",
+    "text": "runtests(files)\n\nLoads the specified Markdown files to extract and run the embedded test cases. Returns true if testing is successful, false otherwise.\n\nruntests()\n\nIn this form, Markdown files are specified as command-line parameters.  When invoked without parameters, loads all *.md files in the program directory. Exits with code 0 if testing is successful, 1 otherwise.  Use this form in test/runtests.jl:\n\nusing NarrativeTest\nruntests()\n\n\n\n"
+},
+
+{
+    "location": "reference.html#NarrativeTest.runtest",
+    "page": "API Reference",
+    "title": "NarrativeTest.runtest",
+    "category": "Function",
+    "text": "runtest(test::Test)\nruntest(loc, code, expect)\n\nRuns the given test case, returns the result.\n\n\n\n"
+},
+
+{
+    "location": "reference.html#NarrativeTest.parsemd",
+    "page": "API Reference",
+    "title": "NarrativeTest.parsemd",
+    "category": "Function",
+    "text": "parsemd(file)\nparsemd(name, io)\n\nParses the specified Markdown file to extract the embedded test suite.  Returns a list of test cases.\n\n\n\n"
+},
+
+{
+    "location": "reference.html#NarrativeTest.parsejl",
+    "page": "API Reference",
+    "title": "NarrativeTest.parsejl",
+    "category": "Function",
+    "text": "parsejl(file)\nparsejl(name, io)\n\nLoads the specified Julia source file and extracts the embedded test suite. Returns a list of test cases.\n\n\n\n"
+},
+
+{
+    "location": "reference.html#API-Reference-1",
+    "page": "API Reference",
+    "title": "API Reference",
+    "category": "section",
+    "text": "NarrativeTest.runtests\nNarrativeTest.runtest\nNarrativeTest.parsemd\nNarrativeTest.parsejl"
 },
 
 {
