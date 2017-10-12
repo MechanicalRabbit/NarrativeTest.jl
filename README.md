@@ -17,7 +17,7 @@ This package is not (yet) officially registered with the Julia package manager,
 but you can install it from the GitHub repository with `Pkg.clone()`.
 
 ```julia
-julia> Pkg.clone("https://github.com/xitology/NarrativeTest.jl")
+julia> Pkg.clone("https://github.com/rbt-lang/NarrativeTest.jl")
 ```
 
 To use NarrativeTest with your package, add the file `test/runtests.jl`:
@@ -90,20 +90,20 @@ If you encounter any problems, please submit a [bug report][issues-url].
 
 ## Copyright
 
-Copyright (c) 2017: Kyrylo Simonov.
+Copyright (c) 2017: Prometheus Research, LLC.
 
 The NarrativeTest package is licensed under the [MIT License][license-url].
 
 
-[travis-img]: https://travis-ci.org/xitology/NarrativeTest.jl.svg?branch=master
-[travis-url]: https://travis-ci.org/xitology/NarrativeTest.jl
-[appveyor-img]: https://ci.appveyor.com/api/projects/status/github/xitology/NarrativeTest.jl?branch=master&svg=true
-[appveyor-url]: https://ci.appveyor.com/project/xitology/narrativetest-jl/branch/master
-[codecov-img]: https://codecov.io/gh/xitology/NarrativeTest.jl/branch/master/graph/badge.svg
-[codecov-url]: https://codecov.io/gh/xitology/NarrativeTest.jl
-[issues-img]: https://img.shields.io/github/issues/xitology/NarrativeTest.jl.svg
-[issues-url]: https://github.com/xitology/NarrativeTest.jl/issues
+[travis-img]: https://travis-ci.org/rbt-lang/NarrativeTest.jl.svg?branch=master
+[travis-url]: https://travis-ci.org/rbt-lang/NarrativeTest.jl
+[appveyor-img]: https://ci.appveyor.com/api/projects/status/github/rbt-lang/NarrativeTest.jl?branch=master&svg=true
+[appveyor-url]: https://ci.appveyor.com/project/rbt-lang/narrativetest-jl/branch/master
+[codecov-img]: https://codecov.io/gh/rbt-lang/NarrativeTest.jl/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/rbt-lang/NarrativeTest.jl
+[issues-img]: https://img.shields.io/github/issues/rbt-lang/NarrativeTest.jl.svg
+[issues-url]: https://github.com/rbt-lang/NarrativeTest.jl/issues
 [doc-latest-img]: https://img.shields.io/badge/doc-latest-blue.svg
-[doc-latest-url]: https://xitology.github.io/NarrativeTest.jl/latest/
+[doc-latest-url]: https://rbt-lang.github.io/NarrativeTest.jl/latest/
 [license-img]: https://img.shields.io/badge/license-MIT-blue.svg
-[license-url]: https://raw.githubusercontent.com/xitology/NarrativeTest.jl/master/LICENSE.md
+[license-url]: https://raw.githubusercontent.com/rbt-lang/NarrativeTest.jl/master/LICENSE.md

@@ -22,7 +22,7 @@ makedocs(
     modules = [NarrativeTest])
 
 deploydocs(
-    repo = "github.com/xitology/NarrativeTest.jl.git",
+    repo = "github.com/rbt-lang/NarrativeTest.jl.git",
     julia = "0.6",
     osname = "linux",
     target = "build",
