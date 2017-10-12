@@ -1,4 +1,16 @@
-# Usage Guide
+# NarrativeTest.jl Documentation
 
-Documentation for NarrativeTest.jl
+## Contents
 
+```@contents
+Pages = [
+    "guide.md",
+    "reference.md",
+    "test.md",
+]
+```
+
+## Index
+
+```@index
+```

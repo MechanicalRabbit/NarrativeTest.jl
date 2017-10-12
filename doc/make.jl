@@ -13,6 +13,12 @@ Base.Markdown.Code(code) = Base.Markdown.Code("julia", code)
 makedocs(
     format = :html,
     sitename = "NarrativeTest.jl",
+    pages = [
+        "Home" => "index.md",
+        "guide.md",
+        "reference.md",
+        "test.md",
+    ],
     modules = [NarrativeTest])
 
 deploydocs(
