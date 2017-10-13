@@ -1,6 +1,5 @@
 #
-# Test framework in which a test suite is given as a Markdown file
-# that combines the narrative with code snippets and expected output.
+# Doctest-like library for functional testing.
 #
 
 __precompile__()
@@ -529,40 +528,21 @@ end
 
 runtest(loc, code, expect) = runtest(Test(loc, code, expect))
 
-# Convert expected output block to a regex pattern.
+# Convert expected output block to a regex.
 
-function expect2regex(pattern::AbstractString)
-    buf = IOBuffer()
-    space = false
-    skipspace = false
-    print(buf, "\\A")
-    for ch in pattern
-        if ch == ' '
-            if !skipspace
-                space = true
-            end
-        elseif ch == '…'
-            print(buf, ".*")
-            space = false
-            skipspace = true
-        elseif ch == '⋮'
-            print(buf, "(.|\\n)*")
-            space = false
-            skipspace = true
-        else
-            if space
-                print(buf, "\\s+")
-                space = false
-            end
-            skipspace = false
-            if !('0' <= ch <= '9' || 'a' <= ch <= 'z' || 'A' <= ch <= 'Z')
-                print(buf, "\\")
-            end
-            print(buf, ch)
-        end
+const EXPECTMAP = [
+        r"[^0-9A-Za-z…⋮\r\n\t ]" => s"\\\0",
+        r"[\t ]*…[\t ]*" => s".+",
+        r"[\t ]*⋮[\t ]*\r?\n?" => s"(.*(\\n|$))+",
+        r"\A" => s"\\A",
+        r"\z" => s"\\z",
+]
+
+function expect2regex(pattern, expectmap=EXPECTMAP)
+    for (regex, repl) in expectmap
+        pattern = replace(pattern, regex, repl)
     end
-    print(buf, "\\z")
-    return Regex(String(take!(buf)))
+    return Regex(pattern)
 end
 
 end
