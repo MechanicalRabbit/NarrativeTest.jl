@@ -1,7 +1,9 @@
-# NarrativeTest
+# NarrativeTest.jl
 
-*A test framework for Julia in which a test suite is given as a Markdown file
-that combines the narrative with the test code and expected output.*
+*NarrativeTest.jl is a Julia library for functional testing, which lets you
+write the test suite in the narrative form.  It permits you to describe the
+behavior of a software component in the Markdown format, and then extract,
+execute and validate any embedded test code.*
 
 [![Linux/OSX Build Status][travis-img]][travis-url]
 [![Windows Build Status][appveyor-img]][appveyor-url]
@@ -20,11 +22,10 @@ but you can install it from the GitHub repository with `Pkg.clone()`.
 julia> Pkg.clone("https://github.com/rbt-lang/NarrativeTest.jl")
 ```
 
-To use NarrativeTest with your package, add the file `test/runtests.jl`:
+If you want to use NarrativeTest for testing your package, add
+`test/runtests.jl`:
 
 ```julia
-#!/usr/bin/env julia
-
 using NarrativeTest
 runtests()
 ```
@@ -36,14 +37,14 @@ declare it as a dependency in `test/REQUIRE`:
 NarrativeTest 0.1
 ```
 
-Place your test suite as a Markdown file to the `test` directory.  Use code
-blocks for test code, comments `#-> …` and `#=> … =#` for expected output.  For
-example, add a file `test/test_sample.md` with the following content:
+You can write your test suite in Markdown and store it in the `test` directory.
+Place your test code in Markdown code blocks, and use comments `#-> …` and
+`#=> … =#` to indicate the expected output.  For example:
 
 ```markdown
 # Sample test suite
 
-Verify that an expression evaluates to the expected value:
+Verify that this expression evaluates to the expected value:
 
     6(3+4)          #-> 42
 
@@ -53,7 +54,7 @@ Check if some code produces the expected output:
     print("World!")
     #-> Hello World!
 
-Use ellipsis to match an arbitrary sequence of characters:
+Abbreviate the output with ellipsis:
 
     collect('a':'z')
     #-> ['a', 'b', …, 'z']
@@ -70,12 +71,6 @@ Use ellipsis to match an arbitrary sequence of characters:
 
 To test your package, run:
 
-```julia
-julia> Pkg.test("YourPackage")
-```
-
-You can also run:
-
 ```console
 $ julia ./test/runtests.jl
 ```
@@ -83,7 +78,7 @@ $ julia ./test/runtests.jl
 
 ## Support
 
-For more information, see the [**Usage Guide**][doc-latest-url].
+For more information, see the [**Documentation**][doc-latest-url].
 
 If you encounter any problems, please submit a [bug report][issues-url].
 
