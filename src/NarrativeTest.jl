@@ -191,14 +191,14 @@ end
     runtests(files)
 
 Loads the specified Markdown files to extract and run the embedded test cases.
-Returns `true` if testing is successful, `false` otherwise.
+Returns `true` if the testing is successful, `false` otherwise.
 
     runtests()
 
-In this form, Markdown files are specified as command-line parameters.  When
+In this form, test files are specified as command-line parameters.  When
 invoked without parameters, loads all `*.md` files in the program directory.
-Exits with code `0` if testing is successful, `1` otherwise.  Use this form in
-`test/runtests.jl`:
+Exits with code `0` if the testing is successful, `1` otherwise.  Use this form
+in `test/runtests.jl`:
 
     using NarrativeTest
     runtests()
@@ -513,12 +513,7 @@ function runtest(test::Test)
             close(pipe.out)
         end
     end
-    # Cut the stack trace at the `runtest()` invocation.
-    #traceend = findlast(f -> f.func == :runtest, trace)
-    #if traceend > 0
-    #    trace = trace[1:traceend-1]
-    #end
-    # Compare the actual output with the expected output and generate the test result.
+    # Compare the actual output with the expected output and generate the result.
     expect = rstrip(test.expect)
     actual = rstrip(join(map(rstrip, eachline(IOBuffer(output))), "\n"))
     return expect == actual || ismatch(expect2regex(expect), actual) ?

@@ -1,15 +1,15 @@
 # Test Suite
 
-This is the test suite for NarrativeTest.jl.  We start it with loading the
-module to import its public API.
+This is the test suite for NarrativeTest.jl.  We start with importing its
+public API.
 
     using NarrativeTest
 
 
 ## Running the tests
 
-The main entry point of `NarrativeTest` is the function `runtests()`.  It
-accepts a list of Markdown files.  Each file is parsed to extract and run the
+The main entry point of `NarrativeTest` is the function `runtests()`, which
+takes a list of Markdown files.  Each file is parsed to extract and run the
 embedded test suite.
 
     ans = runtests(["sample_good.md_"]);
@@ -18,7 +18,7 @@ embedded test suite.
     TESTING SUCCESSFUL!
     =#
 
-If all tests passed, `runtests()` returns `true`.
+If all tests pass, `runtests()` returns `true`.
 
     ans
     #-> true
@@ -59,8 +59,9 @@ reports the problem and returns `false`.
     #-> false
 
 To implement the `runtests.jl` script, invoke `runtests()` without arguments.
-In this form, `runtests()` runs the tests specified as command-line parameters
-and exits with an appropriate exit code.
+In this form, `runtests()` gets the list of files from command-line parameters
+and, after testing is done, terminates the process with an appropriate exit
+code.
 
     julia = Base.julia_cmd()
 
@@ -87,8 +88,8 @@ import the respective API.
         parsejl,
         parsemd
 
-Function `parsemd()` loads a Markdown file and returns an array of the embedded
-test cases.
+Function `parsemd()` parses the given Markdown file and returns an array of the
+extracted test cases.
 
     suite = parsemd("sample_bad.md_")
     display(suite)
@@ -166,9 +167,9 @@ It is an error if a fenced code block is not closed.
         incomplete fenced code block
     =#
 
-Function `parsejl()` extracts embedded test cases from Julia code.  It
-recognizes the comment `#-> …` as single-line expected output and the comment
-`#=> … =#` as multi-line expected output.
+Function `parsejl()` parses a Julia file and returns an array of the extracted
+test cases.  It recognizes comments `#-> …` and `#=> ⋮ =#` as single-line and
+multi-line expected output.
 
     suite = parsejl(
         "<input>",
@@ -227,7 +228,7 @@ A test case may have no expected output.
     Expected output:
     =#
 
-However, it is an error to have expected output block without test code.
+However, it is an error to have an expected output block without any test code.
 
     suite = parsejl(
         "<input>",
@@ -267,10 +268,11 @@ We can run individual tests using the function `runtest()`.
     using NarrativeTest:
         runtest
 
-Function `runtest()` accepts a test case object and returns the test result.
+Function `runtest()` takes a test case object and returns the test result.
 
     suite = parsemd("sample_bad.md_")
-    results = map(runtest, filter(t -> t isa NarrativeTest.Test, suite))
+    suite = filter(t -> t isa NarrativeTest.Test, suite)
+    results = map(runtest, suite)
     display(results)
     #=>
     3-element Array{NarrativeTest.AbstractResult,1}:
@@ -280,7 +282,7 @@ Function `runtest()` accepts a test case object and returns the test result.
     =#
 
 `runtest()` captures the content of the standard output and error streams and
-compares it with the expected test result.
+matches it against the expected test result.
 
     result = runtest("<input>", """println("Hello World!")\n""", "Hello World!\n")
     display(result)
@@ -293,8 +295,7 @@ compares it with the expected test result.
         Hello World!
     =#
 
-`runtest()` also shows the value produced by the last statement of the test
-code.
+`runtest()` shows the value produced by the last statement of the test code.
 
     result = runtest("<input>", "(3+4)*6\n", "42\n")
     display(result)
@@ -318,7 +319,7 @@ code.
         4
     =#
 
-However, if the produced value is equal to `nothing`, it is not displayed.
+However, if this value is equal to `nothing`, it is not displayed.
 
     result = runtest("<input>", "nothing\n", "\n")
     display(result)
@@ -327,8 +328,8 @@ However, if the produced value is equal to `nothing`, it is not displayed.
         ⋮
     =#
 
-You can also suppress displaying the value by ending the test code with `;`, or
-by not providing the expected output.
+This value is also concealed if the test code ends with `;` of if the test case
+has no expected output.
 
     result = runtest("<input>", "(3+4)*6;\n", "\n")
     display(result)
@@ -360,8 +361,8 @@ is included with the output.
         sqrt will only return a complex result if called with a complex argument. …
     =#
 
-In the expected output, we can use symbol `…` to replace any number of
-characters in a line, and symbol `⋮` to replace any number of lines.
+In the expected output, we can use symbol `…` to match any number of characters
+in a line, and symbol `⋮` to match any number of lines.
 
     result = runtest("<input>", "print(collect('A':'Z'))\n", "['A', 'B', …, 'Z']\n")
     display(result)

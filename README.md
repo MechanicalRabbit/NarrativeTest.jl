@@ -1,9 +1,9 @@
 # NarrativeTest.jl
 
-*NarrativeTest.jl is a Julia library for functional testing, which lets you
-write the test suite in the narrative form.  It permits you to describe the
-behavior of a software component in the Markdown format, and then extract,
-execute and validate any embedded test code.*
+*NarrativeTest is a Julia library for functional testing, which lets you write
+the test suite in the narrative form.  It permits you to describe the behavior
+of software components in the Markdown format, and then extract, execute, and
+validate any embedded test code.*
 
 [![Linux/OSX Build Status][travis-img]][travis-url]
 [![Windows Build Status][appveyor-img]][appveyor-url]
@@ -22,33 +22,25 @@ but you can install it from the GitHub repository with `Pkg.clone()`.
 julia> Pkg.clone("https://github.com/rbt-lang/NarrativeTest.jl")
 ```
 
-If you want to use NarrativeTest for testing your package, add
-`test/runtests.jl`:
+To use NarrativeTest for testing your package, add `test/runtests.jl`:
 
 ```julia
 using NarrativeTest
 runtests()
 ```
 
-Once NarrativeTest is registered with the Julia package manager, you can
-declare it as a dependency in `test/REQUIRE`:
-
-```
-NarrativeTest 0.1
-```
-
-You can write your test suite in Markdown and store it in the `test` directory.
-Place your test code in Markdown code blocks, and use comments `#-> …` and
-`#=> … =#` to indicate the expected output.  For example:
+Write the test suite in Markdown and save it in the `test` directory.  Place
+the test code in Markdown code blocks, and use comments `#-> …` and `#=> … =#`
+to indicate the expected output.  For example:
 
 ```markdown
 # Sample test suite
 
-Verify that this expression evaluates to the expected value:
+Verify that the expression evaluates to the expected value:
 
     6(3+4)          #-> 42
 
-Check if some code produces the expected output:
+Check if the code produces the expected output:
 
     print("Hello ")
     print("World!")
