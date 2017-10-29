@@ -484,18 +484,16 @@ function runtest(test::Test)
             # Run the test code and print the result.
             stacktop = length(stacktrace())
             try
-                ans =
-                    try
-                        body = parse("begin\n$(test.code)\nend\n")
-                        eval(mod, body)
-                    catch exc
-                        trace = catch_stacktrace()[1:end-stacktop]
-                        print(STDERR, "ERROR: ")
-                        showerror(STDERR, exc, trace; backtrace=false)
-                        nothing
+                try
+                    body = parse("begin\n$(test.code)\nend\n")
+                    ans = eval(mod, body)
+                    if ans !== nothing && !no_output
+                        show(io, ans)
                     end
-                if ans !== nothing && !no_output
-                    show(io, ans)
+                catch exc
+                    trace = catch_stacktrace()[1:end-stacktop]
+                    print(STDERR, "ERROR: ")
+                    showerror(STDERR, exc, trace; backtrace=false)
                 end
                 println(io)
             finally
