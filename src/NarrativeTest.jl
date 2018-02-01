@@ -18,6 +18,8 @@ struct Location
     line::Int
 end
 
+Location(file::String) = Location(file, 0)
+
 Base.convert(::Type{Location}, file::String) = Location(file, 0)
 
 function Base.show(io::IO, ::MIME"text/plain", loc::Location)
@@ -401,22 +403,22 @@ function parsejl(lineloc::Location, lines::Vector{String})
         elseif isend
             # End of file; process the accumulated test case.
             launch = true
-        elseif !commented && ismatch(r"^#=>\s+$", line)
+        elseif !commented && contains(line, r"^#=>\s+$")
             # Beginning of a multiline output block.
             commented = true
-        elseif commented && ismatch(r"^=#\s+$", line)
+        elseif commented && contains(line, r"^=#\s+$")
             # End of the multiline output block.
             commented = false
             launch = true
         elseif commented
             # In a multiline output block.
             push!(exblk, rstrip(line)*"\n")
-        elseif ismatch(r"^\s*#->\s+", line)
+        elseif contains(line, r"^\s*#->\s+")
             # Standalone output line.
             m = match(r"^\s*#->\s+(.*)$", line)
             push!(exblk, rstrip(m[1])*"\n")
             launch = true
-        elseif ismatch(r"\s#->\s+", line)
+        elseif contains(line, r"\s#->\s+")
             # Code and output on the same line.
             m = match(r"^(.+)\s#->\s+(.*)$", line)
             if isempty(blk)
@@ -485,13 +487,13 @@ function runtest(test::Test)
             stacktop = length(stacktrace())
             try
                 try
-                    body = parse("begin\n$(test.code)\nend\n")
+                    body = Meta.parse("begin\n$(test.code)\nend\n")
                     ans = eval(mod, body)
                     if ans !== nothing && !no_output
                         show(io, ans)
                     end
                 catch exc
-                    trace = catch_stacktrace()[1:end-stacktop]
+                    trace = stacktrace(catch_backtrace())[1:end-stacktop]
                     print(STDERR, "ERROR: ")
                     showerror(STDERR, exc, trace; backtrace=false)
                 end
@@ -514,7 +516,7 @@ function runtest(test::Test)
     # Compare the actual output with the expected output and generate the result.
     expect = rstrip(test.expect)
     actual = rstrip(join(map(rstrip, eachline(IOBuffer(output))), "\n"))
-    return expect == actual || ismatch(expect2regex(expect), actual) ?
+    return expect == actual || contains(actual, expect2regex(expect)) ?
         Pass(test, actual) :
         Fail(test, actual, trace)
 end
@@ -533,7 +535,7 @@ const EXPECTMAP = [
 
 function expect2regex(pattern, expectmap=EXPECTMAP)
     for (regex, repl) in expectmap
-        pattern = replace(pattern, regex, repl)
+        pattern = replace(pattern, regex => repl)
     end
     return Regex(pattern)
 end
