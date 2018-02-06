@@ -296,7 +296,11 @@ function loadfile(parsefile::Function, name::String, file::Union{String,IO})
     loc = Location(name)
     lines =
         try
-            readlines(file, chomp=false)
+            if VERSION < v"0.7.0-DEV.3510"
+                readlines(file, chomp=false)
+            else
+                readlines(file, keep=true)
+            end
         catch exc
             return AbstractTest[BrokenTest(loc, exc)]
         end
