@@ -197,8 +197,8 @@ display(results)
 #=&gt;
 3-element Array{NarrativeTest.AbstractResult,1}:
  NarrativeTest.Pass(NarrativeTest.Test( … , &quot;(3+4)*6\n&quot;, &quot;42\n&quot;), &quot;42&quot;)
- NarrativeTest.Fail(NarrativeTest.Test( … , &quot;2+2\n&quot;, &quot;5\n&quot;), &quot;4&quot;, StackFrame[])
- NarrativeTest.Fail(NarrativeTest.Test( … , &quot;sqrt(-1)\n&quot;, &quot;0.0 + 1.0im\n&quot;), &quot;ERROR: DomainError …\n …&quot;, StackFrame[ … ])
+ NarrativeTest.Fail(NarrativeTest.Test( … , &quot;2+2\n&quot;, &quot;5\n&quot;), &quot;4&quot;, …StackFrame[])
+ NarrativeTest.Fail(NarrativeTest.Test( … , &quot;sqrt(-1)\n&quot;, &quot;0.0 + 1.0im\n&quot;), &quot;ERROR: DomainError …\n …&quot;, …StackFrame[ … ])
 =#</code></pre><p><code>runtest()</code> captures the content of the standard output and error streams and matches it against the expected test result.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;&quot;&quot;println(&quot;Hello World!&quot;)\n&quot;&quot;&quot;, &quot;Hello World!\n&quot;)
 display(result)
 #=&gt;
