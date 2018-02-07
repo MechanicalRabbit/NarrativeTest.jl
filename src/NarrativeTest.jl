@@ -95,7 +95,7 @@ end
 struct Fail <: AbstractResult
     test::Test
     output::String
-    trace::StackTrace
+    trace::StackTraces.StackTrace
 end
 
 function Base.show(io::IO, mime::MIME"text/plain", fail::Fail)
@@ -483,7 +483,7 @@ function runtest(test::Test)
     redirect_stdout(pipe.in)
     redirect_stderr(pipe.in)
     pushdisplay(TextDisplay(io))
-    trace = StackTrace()
+    trace = StackTraces.StackTrace()
     output = ""
     @sync begin
         @async begin

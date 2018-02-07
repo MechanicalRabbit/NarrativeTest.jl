@@ -277,8 +277,8 @@ Function `runtest()` takes a test case object and returns the test result.
     #=>
     3-element Array{NarrativeTest.AbstractResult,1}:
      NarrativeTest.Pass(NarrativeTest.Test( … , "(3+4)*6\n", "42\n"), "42")
-     NarrativeTest.Fail(NarrativeTest.Test( … , "2+2\n", "5\n"), "4", StackFrame[])
-     NarrativeTest.Fail(NarrativeTest.Test( … , "sqrt(-1)\n", "0.0 + 1.0im\n"), "ERROR: DomainError …\n …", StackFrame[ … ])
+     NarrativeTest.Fail(NarrativeTest.Test( … , "2+2\n", "5\n"), "4", …StackFrame[])
+     NarrativeTest.Fail(NarrativeTest.Test( … , "sqrt(-1)\n", "0.0 + 1.0im\n"), "ERROR: DomainError …\n …", …StackFrame[ … ])
     =#
 
 `runtest()` captures the content of the standard output and error streams and
