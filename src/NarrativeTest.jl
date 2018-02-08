@@ -471,7 +471,7 @@ function runtest(test::Test)
     # Suppress printing of the output value?
     no_output = endswith(test.code, ";\n") || isempty(test.expect)
     # Generate a module object for running the test code.
-    mod = get!(MODCACHE, test.loc.file, Module(Symbol(test.loc.file)))
+    mod = get!(MODCACHE, test.loc.file, Module(Symbol(basename(test.loc.file))))
     # Replace the standard output/error with a pipe.
     orig_have_color = Base.have_color
     eval(Base, :(have_color = false))
