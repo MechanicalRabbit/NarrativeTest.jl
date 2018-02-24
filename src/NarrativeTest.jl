@@ -229,33 +229,33 @@ function runtests(files)
     errors = 0
     for file in files
         n = 0
-        print(STDERR, indicator(file, n))
+        print(stderr, indicator(file, n))
         suite = parsemd(file)
         cd(dirname(abspath(file))) do
             for test in suite
                 if test isa BrokenTest
-                    print(STDERR, CLRL)
+                    print(stderr, CLRL)
                     print(SEPARATOR)
                     display(test)
-                    print(STDERR, indicator(file, n))
+                    print(stderr, indicator(file, n))
                     errors += 1
                 elseif test isa Test
                     res = runtest(test)
                     if res isa Pass
                         passed += 1
                     elseif res isa Fail
-                        print(STDERR, CLRL)
+                        print(stderr, CLRL)
                         print(SEPARATOR)
                         display(res)
-                        print(STDERR, indicator(file, n))
+                        print(stderr, indicator(file, n))
                         failed += 1
                     end
                 end
                 n += 1
-                print(STDERR, MORE)
+                print(stderr, MORE)
             end
         end
-        print(STDERR, CLRL)
+        print(stderr, CLRL)
     end
     summary = Summary(passed, failed, errors)
     success = failed == 0 && errors == 0
@@ -263,7 +263,7 @@ function runtests(files)
         print(SEPARATOR)
     end
     display(summary)
-    println(STDERR, success ? SUCCESS : FAILURE)
+    println(stderr, success ? SUCCESS : FAILURE)
     return success
 end
 
@@ -475,10 +475,14 @@ function runtest(test::Test)
     # Replace the standard output/error with a pipe.
     orig_have_color = Base.have_color
     eval(Base, :(have_color = false))
-    orig_stdout = STDOUT
-    orig_stderr = STDERR
+    orig_stdout = stdout
+    orig_stderr = stderr
     pipe = Pipe()
-    Base.link_pipe(pipe; julia_only_read=true, julia_only_write=false)
+    if VERSION < v"0.7.0-DEV.4055"
+        Base.link_pipe(pipe; julia_only_read=true, julia_only_write=false)
+    else
+        Base.link_pipe!(pipe; reader_supports_async=true, writer_supports_async=false)
+    end
     io = IOContext(pipe.in, :limit=>true, :module=>mod)
     redirect_stdout(pipe.in)
     redirect_stderr(pipe.in)
@@ -498,8 +502,8 @@ function runtest(test::Test)
                     end
                 catch exc
                     trace = stacktrace(catch_backtrace())[1:end-stacktop]
-                    print(STDERR, "ERROR: ")
-                    showerror(STDERR, exc, trace; backtrace=false)
+                    print(stderr, "ERROR: ")
+                    showerror(stderr, exc, trace; backtrace=false)
                 end
                 println(io)
             finally
