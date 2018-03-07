@@ -65,13 +65,13 @@ code.
 
     julia = Base.julia_cmd()
 
-    run(`$julia -e 'using NarrativeTest; runtests()' sample_good.md_`)
+    run(`$julia -e 'using NarrativeTest; runtests()' sample_good.md_`);
     #=>
     ⋮
     TESTING SUCCESSFUL!
     =#
 
-    run(`$julia -e 'using NarrativeTest; runtests()' sample_bad.md_`)
+    run(`$julia -e 'using NarrativeTest; runtests()' sample_bad.md_`);
     #=>
     ⋮
     TESTING UNSUCCESSFUL!
