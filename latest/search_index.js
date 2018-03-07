@@ -84,7 +84,7 @@ var documenterSearchIndex = {"docs": [
     "location": "reference.html#NarrativeTest.runtests",
     "page": "API Reference",
     "title": "NarrativeTest.runtests",
-    "category": "Function",
+    "category": "function",
     "text": "runtests(files)\n\nLoads the specified Markdown files to extract and run the embedded test cases. Returns true if the testing is successful, false otherwise.\n\nruntests()\n\nIn this form, test files are specified as command-line parameters.  When invoked without parameters, loads all *.md files in the program directory. Exits with code 0 if the testing is successful, 1 otherwise.  Use this form in test/runtests.jl:\n\nusing NarrativeTest\nruntests()\n\n\n\n"
 },
 
@@ -92,7 +92,7 @@ var documenterSearchIndex = {"docs": [
     "location": "reference.html#NarrativeTest.runtest",
     "page": "API Reference",
     "title": "NarrativeTest.runtest",
-    "category": "Function",
+    "category": "function",
     "text": "runtest(test::Test)\nruntest(loc, code, expect)\n\nRuns the given test case, returns the result.\n\n\n\n"
 },
 
@@ -100,7 +100,7 @@ var documenterSearchIndex = {"docs": [
     "location": "reference.html#NarrativeTest.parsemd",
     "page": "API Reference",
     "title": "NarrativeTest.parsemd",
-    "category": "Function",
+    "category": "function",
     "text": "parsemd(file)\nparsemd(name, io)\n\nParses the specified Markdown file to extract the embedded test suite.  Returns a list of test cases.\n\n\n\n"
 },
 
@@ -108,7 +108,7 @@ var documenterSearchIndex = {"docs": [
     "location": "reference.html#NarrativeTest.parsejl",
     "page": "API Reference",
     "title": "NarrativeTest.parsejl",
-    "category": "Function",
+    "category": "function",
     "text": "parsejl(file)\nparsejl(name, io)\n\nLoads the specified Julia source file and extracts the embedded test suite. Returns a list of test cases.\n\n\n\n"
 },
 
@@ -141,7 +141,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Test Suite",
     "title": "Running the tests",
     "category": "section",
-    "text": "The main entry point of NarrativeTest is the function runtests(), which takes a list of Markdown files.  Each file is parsed to extract and run the embedded test suite.ans = runtests([\"sample_good.md_\"]);\n#=>\nTests passed: 3\nTESTING SUCCESSFUL!\n=#If all tests pass, runtests() returns true.ans\n#-> trueIf any of the tests fail or an ill-formed test case is detected, runtests() reports the problem and returns false.ans = runtests([\"sample_bad.md_\"]);\n#=>\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nTest failed at sample_bad.md_, line 9:\n    2+2\nExpected output:\n    5\nActual output:\n    4\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nTest failed at sample_bad.md_, line 13:\n    sqrt(-1)\nExpected output:\n    0.0 + 1.0im\nActual output:\n    ERROR: DomainError …\n    sqrt will only return a complex result if called with a complex argument. …\n    Stacktrace:\n     ⋮\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nError at sample_bad.md_, line 17:\n    missing test code\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nTests passed: 1\nTests failed: 2\nErrors: 1\nTESTING UNSUCCESSFUL!\n=#\n\nans\n#-> falseTo implement the runtests.jl script, invoke runtests() without arguments. In this form, runtests() gets the list of files from command-line parameters and, after testing is done, terminates the process with an appropriate exit code.julia = Base.julia_cmd()\n\nrun(`$julia -e \'using NarrativeTest; runtests()\' sample_good.md_`)\n#=>\n⋮\nTESTING SUCCESSFUL!\n=#\n\nrun(`$julia -e \'using NarrativeTest; runtests()\' sample_bad.md_`)\n#=>\n⋮\nTESTING UNSUCCESSFUL!\nERROR: failed process: Process(` … `, ProcessExited(1)) [1]\n=#"
+    "text": "The main entry point of NarrativeTest is the function runtests(), which takes a list of Markdown files.  Each file is parsed to extract and run the embedded test suite.ans = runtests([\"sample_good.md_\"]);\n#=>\nTests passed: 3\nTESTING SUCCESSFUL!\n=#If all tests pass, runtests() returns true.ans\n#-> trueIf any of the tests fail or an ill-formed test case is detected, runtests() reports the problem and returns false.ans = runtests([\"sample_bad.md_\"]);\n#=>\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nTest failed at sample_bad.md_, line 9:\n    2+2\nExpected output:\n    5\nActual output:\n    4\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nTest failed at sample_bad.md_, line 13:\n    sqrt(-1)\nExpected output:\n    0.0 + 1.0im\nActual output:\n    ERROR: DomainError …\n    sqrt will only return a complex result if called with a complex argument. …\n    Stacktrace:\n     ⋮\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nError at sample_bad.md_, line 17:\n    missing test code\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nTests passed: 1\nTests failed: 2\nErrors: 1\nTESTING UNSUCCESSFUL!\n=#\n\nans\n#-> falseTo implement the runtests.jl script, invoke runtests() without arguments. In this form, runtests() gets the list of files from command-line parameters and, after testing is done, terminates the process with an appropriate exit code.julia = Base.julia_cmd()\n\nrun(`$julia -e \'using NarrativeTest; runtests()\' sample_good.md_`);\n#=>\n⋮\nTESTING SUCCESSFUL!\n=#\n\nrun(`$julia -e \'using NarrativeTest; runtests()\' sample_bad.md_`);\n#=>\n⋮\nTESTING UNSUCCESSFUL!\nERROR: failed process: Process(` … `, ProcessExited(1)) [1]\n=#"
 },
 
 {

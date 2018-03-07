@@ -36,13 +36,13 @@ TESTING UNSUCCESSFUL!
 ans
 #-&gt; false</code></pre><p>To implement the <code>runtests.jl</code> script, invoke <code>runtests()</code> without arguments. In this form, <code>runtests()</code> gets the list of files from command-line parameters and, after testing is done, terminates the process with an appropriate exit code.</p><pre><code class="language-julia">julia = Base.julia_cmd()
 
-run(`$julia -e &#39;using NarrativeTest; runtests()&#39; sample_good.md_`)
+run(`$julia -e &#39;using NarrativeTest; runtests()&#39; sample_good.md_`);
 #=&gt;
 ⋮
 TESTING SUCCESSFUL!
 =#
 
-run(`$julia -e &#39;using NarrativeTest; runtests()&#39; sample_bad.md_`)
+run(`$julia -e &#39;using NarrativeTest; runtests()&#39; sample_bad.md_`);
 #=&gt;
 ⋮
 TESTING UNSUCCESSFUL!
