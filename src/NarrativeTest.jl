@@ -407,22 +407,22 @@ function parsejl(lineloc::Location, lines::Vector{String})
         elseif isend
             # End of file; process the accumulated test case.
             launch = true
-        elseif !commented && contains(line, r"^#=>\s+$")
+        elseif !commented && occursin(r"^#=>\s+$", line)
             # Beginning of a multiline output block.
             commented = true
-        elseif commented && contains(line, r"^=#\s+$")
+        elseif commented && occursin(r"^=#\s+$", line)
             # End of the multiline output block.
             commented = false
             launch = true
         elseif commented
             # In a multiline output block.
             push!(exblk, rstrip(line)*"\n")
-        elseif contains(line, r"^\s*#->\s+")
+        elseif occursin(r"^\s*#->\s+", line)
             # Standalone output line.
             m = match(r"^\s*#->\s+(.*)$", line)
             push!(exblk, rstrip(m[1])*"\n")
             launch = true
-        elseif contains(line, r"\s#->\s+")
+        elseif occursin(r"\s#->\s+", line)
             # Code and output on the same line.
             m = match(r"^(.+)\s#->\s+(.*)$", line)
             if isempty(blk)
@@ -524,7 +524,7 @@ function runtest(test::Test)
     # Compare the actual output with the expected output and generate the result.
     expect = rstrip(test.expect)
     actual = rstrip(join(map(rstrip, eachline(IOBuffer(output))), "\n"))
-    return expect == actual || contains(actual, expect2regex(expect)) ?
+    return expect == actual || occursin(expect2regex(expect), actual) ?
         Pass(test, actual) :
         Fail(test, actual, trace)
 end
