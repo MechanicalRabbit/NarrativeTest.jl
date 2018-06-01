@@ -474,7 +474,7 @@ function runtest(test::Test)
     mod = get!(MODCACHE, test.loc.file, Module(Symbol(basename(test.loc.file))))
     # Replace the standard output/error with a pipe.
     orig_have_color = Base.have_color
-    eval(Base, :(have_color = false))
+    Core.eval(Base, :(have_color = false))
     orig_stdout = stdout
     orig_stderr = stderr
     pipe = Pipe()
@@ -496,7 +496,7 @@ function runtest(test::Test)
             try
                 try
                     body = Meta.parse("begin\n$(test.code)\nend\n")
-                    ans = eval(mod, body)
+                    ans = Core.eval(mod, body)
                     if ans !== nothing && !no_output
                         show(io, ans)
                     end
@@ -511,7 +511,7 @@ function runtest(test::Test)
                 popdisplay()
                 redirect_stderr(orig_stderr)
                 redirect_stdout(orig_stdout)
-                eval(Base, :(have_color = $orig_have_color))
+                Core.eval(Base, :(have_color = $orig_have_color))
                 close(pipe.in)
             end
         end
