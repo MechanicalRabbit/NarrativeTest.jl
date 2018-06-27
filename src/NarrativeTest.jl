@@ -495,7 +495,8 @@ function runtest(test::Test)
             stacktop = length(stacktrace())
             try
                 try
-                    body = Meta.parse("begin\n$(test.code)\nend\n")
+                    body = Base.parse_input_line("\n" ^ max(0, test.loc.line-1) * test.code,
+                                                 filename=basename(test.loc.file))
                     ans = Core.eval(mod, body)
                     if ans !== nothing && !no_output
                         show(io, ans)
