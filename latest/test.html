@@ -102,7 +102,15 @@ Test case at &lt;input&gt;, line 14:
     sqrt(-1)
 Expected output:
     0.0 + 1.0im
-=#</code></pre><p>It is an error if a fenced code block is not closed.</p><pre><code class="language-julia">suite = parsemd(
+=#</code></pre><p>A fenced code block with an explicit language indicator is ignored.</p><pre><code class="language-julia">parsemd(
+    &quot;&lt;input&gt;&quot;,
+    IOBuffer(&quot;&quot;&quot;
+        The following code will not be tested.
+        ```julia
+        2 + 2   $(&quot;#-&gt;&quot;) 5
+        ```
+        &quot;&quot;&quot;))
+#-&gt; NarrativeTest.AbstractTest[]</code></pre><p>It is an error if a fenced code block is not closed.</p><pre><code class="language-julia">suite = parsemd(
     &quot;&lt;input&gt;&quot;,
     IOBuffer(&quot;&quot;&quot;
         Incomplete fenced code block is an error.
