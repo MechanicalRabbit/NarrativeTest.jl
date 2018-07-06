@@ -151,6 +151,18 @@ fenced.
         0.0 + 1.0im
     =#
 
+A fenced code block with an explicit language indicator is ignored.
+
+    parsemd(
+        "<input>",
+        IOBuffer("""
+            The following code will not be tested.
+            ```julia
+            2 + 2   $("#->") 5
+            ```
+            """))
+    #-> NarrativeTest.AbstractTest[]
+
 It is an error if a fenced code block is not closed.
 
     suite = parsemd(

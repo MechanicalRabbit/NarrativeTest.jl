@@ -321,6 +321,8 @@ function parsemd(lineloc::Location, lines::Vector{String})
     loc = lineloc
     # Are we inside a fenced code block?
     fenced = false
+    # Language of the fenced block.
+    lang = ""
     # Do we need to process the accumulated code snippet?
     launch = false
     # Here, we extract code snippets, either indented or fenced, and pass them to `parsejl()`.
@@ -336,6 +338,7 @@ function parsemd(lineloc::Location, lines::Vector{String})
                 launch = true
             elseif isfence
                 # Beginning of a fenced block; process the accumulated snippet.
+                lang = rstrip(line)[4:end]
                 launch = true
                 fenced = true
             elseif isindent && !isblank
@@ -361,7 +364,7 @@ function parsemd(lineloc::Location, lines::Vector{String})
                 # End of a fenced block: process the accumulated snippet.
                 launch = true
                 fenced = false
-            elseif !isblank && isempty(blk)
+            elseif !isblank && isempty(blk) && lang == ""
                 # The first line of code.
                 loc = lineloc
                 push!(blk, line)
