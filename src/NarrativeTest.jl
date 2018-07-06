@@ -211,7 +211,7 @@ function runtests()
         args = ARGS
     else
         base = relpath(dirname(abspath(PROGRAM_FILE)))
-        for (root, dirs, files) in walkdir(base)
+        for (root, dirs, files) in walkdir(base, follow_symlinks=true)
             for file in files
                 if splitext(file)[2] == ".md"
                     push!(args, joinpath(root, file))
