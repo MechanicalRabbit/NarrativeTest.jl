@@ -2,8 +2,6 @@
 # Doctest-like library for functional testing.
 #
 
-__precompile__()
-
 module NarrativeTest
 
 using Compat
