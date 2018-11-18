@@ -1,14 +1,14 @@
 #!/usr/bin/env julia
 
-if Pkg.installed("Documenter") == nothing
-    Pkg.add("Documenter")
-end
+using Pkg
+haskey(Pkg.installed(), "Documenter") || Pkg.add("Documenter")
 
 using Documenter
 using NarrativeTest
 
 # Highlight indented code blocks as Julia code.
-Base.Markdown.Code(code) = Base.Markdown.Code("julia", code)
+using Markdown
+Markdown.Code(code) = Markdown.Code("julia", code)
 
 makedocs(
     format = :html,
@@ -23,8 +23,4 @@ makedocs(
 
 deploydocs(
     repo = "github.com/rbt-lang/NarrativeTest.jl.git",
-    julia = "0.6",
-    osname = "linux",
-    target = "build",
-    deps = nothing,
-    make = nothing)
+)
