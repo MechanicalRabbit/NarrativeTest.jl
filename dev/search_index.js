@@ -53,7 +53,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Usage Guide",
     "title": "Installation",
     "category": "section",
-    "text": "NarrativeTest is not yet registered with the Julia package manager, but you can install it from the GitHub repository using Pkg.clone():julia> Pkg.clone(\"https://github.com/rbt-lang/NarrativeTest.jl\")To use NarrativeTest for testing your package, create the following test/runtests.jl script in the package directory:#!/usr/bin/env julia\n\nusing NarrativeTest\nruntests()Once NarrativeTest is registered with the Julia package manager, you can declare it as a dependency in test/REQUIRE:NarrativeTest 0.1"
+    "text": "You can install NarrativeTest using the Julia package manager:julia> using Pkg\njulia> Pkg.add(\"NarrativeTest\")Alternatively, you can install it from the GitHub repository using Pkg.clone():julia> Pkg.clone(\"https://github.com/rbt-lang/NarrativeTest.jl\")To use NarrativeTest for testing your package, add it as a test-specific dependency and create the following test/runtests.jl script in the package directory:#!/usr/bin/env julia\n\nusing NarrativeTest\nruntests()"
 },
 
 {
