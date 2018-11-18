@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Test Suite · NarrativeTest.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>NarrativeTest.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li><a class="toctext" href="../guide/">Usage Guide</a></li><li><a class="toctext" href="../reference/">API Reference</a></li><li class="current"><a class="toctext" href>Test Suite</a><ul class="internal"><li><a class="toctext" href="#Running-the-tests-1">Running the tests</a></li><li><a class="toctext" href="#Extracting-test-cases-1">Extracting test cases</a></li><li><a class="toctext" href="#Running-one-test-1">Running one test</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Test Suite</a></li></ul><a class="edit-page" href="https://github.com/rbt-lang/NarrativeTest.jl/blob/master/test/index.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Test Suite</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Test-Suite-1" href="#Test-Suite-1">Test Suite</a></h1><p>This is the test suite for NarrativeTest.jl.  We start with importing its public API.</p><pre><code class="language-julia">using NarrativeTest</code></pre><h2><a class="nav-anchor" id="Running-the-tests-1" href="#Running-the-tests-1">Running the tests</a></h2><p>The main entry point of <code>NarrativeTest</code> is the function <code>runtests()</code>, which takes a list of Markdown files.  Each file is parsed to extract and run the embedded test suite.</p><pre><code class="language-julia">ans = runtests([&quot;sample_good.md_&quot;]);
+#=&gt;
+Tests passed: 3
+TESTING SUCCESSFUL!
+=#</code></pre><p>If all tests pass, <code>runtests()</code> returns <code>true</code>.</p><pre><code class="language-julia">ans
+#-&gt; true</code></pre><p>If any of the tests fail or an ill-formed test case is detected, <code>runtests()</code> reports the problem and returns <code>false</code>.</p><pre><code class="language-julia">ans = runtests([&quot;sample_bad.md_&quot;]);
+#=&gt;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Test failed at sample_bad.md_, line 9:
+    2+2
+Expected output:
+    5
+Actual output:
+    4
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Test failed at sample_bad.md_, line 13:
+    sqrt(-1)
+Expected output:
+    0.0 + 1.0im
+Actual output:
+    ERROR: DomainError …
+    sqrt will only return a complex result if called with a complex argument. …
+    Stacktrace:
+     ⋮
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Error at sample_bad.md_, line 17:
+    missing test code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Tests passed: 1
+Tests failed: 2
+Errors: 1
+TESTING UNSUCCESSFUL!
+=#
+
+ans
+#-&gt; false</code></pre><p>To implement the <code>runtests.jl</code> script, invoke <code>runtests()</code> without arguments. In this form, <code>runtests()</code> gets the list of files from command-line parameters and, after testing is done, terminates the process with an appropriate exit code.</p><pre><code class="language-julia">julia = Base.julia_cmd()
+
+run(`$julia -e &#39;using NarrativeTest; runtests()&#39; sample_good.md_`);
+#=&gt;
+⋮
+TESTING SUCCESSFUL!
+=#
+
+run(`$julia -e &#39;using NarrativeTest; runtests()&#39; sample_bad.md_`);
+#=&gt;
+⋮
+TESTING UNSUCCESSFUL!
+ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
+=#</code></pre><h2><a class="nav-anchor" id="Extracting-test-cases-1" href="#Extracting-test-cases-1">Extracting test cases</a></h2><p>We can extract individual test cases from Markdown and Julia files.  Let us import the respective API.</p><pre><code class="language-julia">using NarrativeTest:
+    parsejl,
+    parsemd</code></pre><p>Function <code>parsemd()</code> parses the given Markdown file and returns an array of the extracted test cases.</p><pre><code class="language-julia">suite = parsemd(&quot;sample_bad.md_&quot;)
+display(suite)
+#=&gt;
+4-element Array{NarrativeTest.AbstractTest,1}:
+ NarrativeTest.Test(NarrativeTest.Location(&quot;sample_bad.md_&quot;, 5), &quot;(3+4)*6\n&quot;, &quot;42\n&quot;)
+ NarrativeTest.Test(NarrativeTest.Location(&quot;sample_bad.md_&quot;, 9), &quot;2+2\n&quot;, &quot;5\n&quot;)
+ NarrativeTest.Test(NarrativeTest.Location(&quot;sample_bad.md_&quot;, 13), &quot;sqrt(-1)\n&quot;, &quot;0.0 + 1.0im\n&quot;)
+ NarrativeTest.BrokenTest(NarrativeTest.Location(&quot;sample_bad.md_&quot;, 17), &quot;missing test code&quot;)
+=#
+
+suite = parsemd(&quot;sample_missing.md_&quot;)
+display(suite)
+#=&gt;
+1-element Array{NarrativeTest.AbstractTest,1}:
+ NarrativeTest.BrokenTest(NarrativeTest.Location(&quot;sample_missing.md_&quot;, 0), &quot;SystemError: … &quot;)
+=#</code></pre><p>Function <code>parsemd()</code> recognizes two types of Markdown code blocks: indented and fenced.</p><pre><code class="language-julia">suite = parsemd(
+    &quot;&lt;input&gt;&quot;,
+    IOBuffer(&quot;&quot;&quot;
+        These test cases are embedded in an indented code block.
+
+            (3+4)*6
+            $(&quot;#-&gt;&quot;) 42
+
+            2+2
+            $(&quot;#-&gt;&quot;) 5
+
+        The following test cases are embedded in a fenced code block.
+        ```
+        print(2^16)
+        $(&quot;#-&gt;&quot;) 65526
+
+        sqrt(-1)
+        $(&quot;#-&gt;&quot;) 0.0 + 1.0im
+        ```
+        &quot;&quot;&quot;))
+foreach(display, suite)
+#=&gt;
+Test case at &lt;input&gt;, line 3:
+    (3+4)*6
+Expected output:
+    42
+Test case at &lt;input&gt;, line 6:
+    2+2
+Expected output:
+    5
+Test case at &lt;input&gt;, line 11:
+    print(2^16)
+Expected output:
+    65526
+Test case at &lt;input&gt;, line 14:
+    sqrt(-1)
+Expected output:
+    0.0 + 1.0im
+=#</code></pre><p>A fenced code block with an explicit language indicator is ignored.</p><pre><code class="language-julia">parsemd(
+    &quot;&lt;input&gt;&quot;,
+    IOBuffer(&quot;&quot;&quot;
+        The following code will not be tested.
+        ```julia
+        2 + 2   $(&quot;#-&gt;&quot;) 5
+        ```
+        &quot;&quot;&quot;))
+#-&gt; NarrativeTest.AbstractTest[]</code></pre><p>It is an error if a fenced code block is not closed.</p><pre><code class="language-julia">suite = parsemd(
+    &quot;&lt;input&gt;&quot;,
+    IOBuffer(&quot;&quot;&quot;
+        Incomplete fenced code block is an error.
+        ```
+        (3+4)*6
+        $(&quot;#-&gt;&quot;) 42
+        &quot;&quot;&quot;))
+foreach(display, suite)
+#=&gt;
+Error at &lt;input&gt;, line 5:
+    incomplete fenced code block
+=#</code></pre><p>Function <code>parsejl()</code> parses a Julia file and returns an array of the extracted test cases.  It recognizes comments <code>#-&gt; …</code> and <code>#=&gt; ⋮ =#</code> as single-line and multi-line expected output.</p><pre><code class="language-julia">suite = parsejl(
+    &quot;&lt;input&gt;&quot;,
+    IOBuffer(&quot;&quot;&quot;
+        2+2     $(&quot;#-&gt;&quot;) 4
+
+        print(2^16)
+        $(&quot;#-&gt;&quot;) 65526
+
+        display(collect(&#39;A&#39;:&#39;Z&#39;))
+        $(&quot;#=&gt;&quot;)
+        26-element Array{Char,1}:
+         &#39;A&#39;
+         &#39;B&#39;
+         ⋮
+         &#39;Z&#39;
+        =#
+        &quot;&quot;&quot;))
+foreach(display, suite)
+#=&gt;
+Test case at &lt;input&gt;, line 1:
+    2+2
+Expected output:
+    4
+Test case at &lt;input&gt;, line 3:
+    print(2^16)
+Expected output:
+    65526
+Test case at &lt;input&gt;, line 6:
+    display(collect(&#39;A&#39;:&#39;Z&#39;))
+Expected output:
+    26-element Array{Char,1}:
+     &#39;A&#39;
+     &#39;B&#39;
+     ⋮
+     &#39;Z&#39;
+=#</code></pre><p>A test case may have no expected output.</p><pre><code class="language-julia">suite = parsejl(
+    &quot;&lt;input&gt;&quot;,
+    IOBuffer(&quot;&quot;&quot;
+        x = pi/6
+        y = sin(x)
+
+        @assert y ≈ 0.5
+        &quot;&quot;&quot;))
+foreach(display, suite)
+#=&gt;
+Test case at &lt;input&gt;, line 1:
+    x = pi/6
+    y = sin(x)
+
+    @assert y ≈ 0.5
+Expected output:
+=#</code></pre><p>However, it is an error to have an expected output block without any test code.</p><pre><code class="language-julia">suite = parsejl(
+    &quot;&lt;input&gt;&quot;,
+    IOBuffer(&quot;&quot;&quot;
+        $(&quot;#-&gt;&quot;) 42
+        &quot;&quot;&quot;))
+foreach(display, suite)
+#=&gt;
+Error at &lt;input&gt;, line 1:
+    missing test code
+=#</code></pre><p>It is also an error if a multi-line output block is not closed.</p><pre><code class="language-julia">suite = parsejl(
+    &quot;&lt;input&gt;&quot;,
+    IOBuffer(&quot;&quot;&quot;
+        display(collect(&#39;A&#39;:&#39;Z&#39;))
+        $(&quot;#=&gt;&quot;)
+        26-element Array{Char,1}:
+         &#39;A&#39;
+         &#39;B&#39;
+         ⋮
+         &#39;Z&#39;
+        &quot;&quot;&quot;))
+foreach(display, suite)
+#=&gt;
+Error at &lt;input&gt;, line 8:
+    incomplete multiline comment block
+=#</code></pre><h2><a class="nav-anchor" id="Running-one-test-1" href="#Running-one-test-1">Running one test</a></h2><p>We can run individual tests using the function <code>runtest()</code>.</p><pre><code class="language-julia">using NarrativeTest:
+    runtest</code></pre><p>Function <code>runtest()</code> takes a test case object and returns the test result.</p><pre><code class="language-julia">suite = parsemd(&quot;sample_bad.md_&quot;)
+suite = filter(t -&gt; t isa NarrativeTest.Test, suite)
+results = map(runtest, suite)
+display(results)
+#=&gt;
+3-element Array{NarrativeTest.AbstractResult,1}:
+ NarrativeTest.Pass(NarrativeTest.Test( … , &quot;(3+4)*6\n&quot;, &quot;42\n&quot;), &quot;42&quot;)
+ NarrativeTest.Fail(NarrativeTest.Test( … , &quot;2+2\n&quot;, &quot;5\n&quot;), &quot;4&quot;, …StackFrame[])
+ NarrativeTest.Fail(NarrativeTest.Test( … , &quot;sqrt(-1)\n&quot;, &quot;0.0 + 1.0im\n&quot;), &quot;ERROR: DomainError …\n …&quot;, …StackFrame[ … ])
+=#</code></pre><p><code>runtest()</code> captures the content of the standard output and error streams and matches it against the expected test result.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;&quot;&quot;println(&quot;Hello World!&quot;)\n&quot;&quot;&quot;, &quot;Hello World!\n&quot;)
+display(result)
+#=&gt;
+Test passed at &lt;input&gt;:
+    println(&quot;Hello World!&quot;)
+Expected output:
+    Hello World!
+Actual output:
+    Hello World!
+=#</code></pre><p><code>runtest()</code> shows the value produced by the last statement of the test code.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;(3+4)*6\n&quot;, &quot;42\n&quot;)
+display(result)
+#=&gt;
+Test passed at &lt;input&gt;:
+    (3+4)*6
+Expected output:
+    42
+Actual output:
+    42
+=#
+
+result = runtest(&quot;&lt;input&gt;&quot;, &quot;2+2\n&quot;, &quot;5\n&quot;)
+display(result)
+#=&gt;
+Test failed at &lt;input&gt;:
+    2+2
+Expected output:
+    5
+Actual output:
+    4
+=#</code></pre><p>However, if this value is equal to <code>nothing</code>, it is not displayed.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;nothing\n&quot;, &quot;\n&quot;)
+display(result)
+#=&gt;
+Test passed at &lt;input&gt;:
+    ⋮
+=#</code></pre><p>This value is also concealed if the test code ends with <code>;</code> of if the test case has no expected output.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;(3+4)*6;\n&quot;, &quot;\n&quot;)
+display(result)
+#=&gt;
+Test passed at &lt;input&gt;:
+    ⋮
+=#
+
+result = runtest(&quot;&lt;input&gt;&quot;, &quot;(3+4)*6\n&quot;, &quot;&quot;)
+display(result)
+#=&gt;
+Test passed at &lt;input&gt;:
+    ⋮
+=#</code></pre><p>When the test raises an exception, the error message (but not the stack trace) is included with the output.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;sqrt(-1)\n&quot;, &quot;ERROR: DomainError …\n …&quot;)
+display(result)
+#=&gt;
+Test passed at &lt;input&gt;:
+    sqrt(-1)
+Expected output:
+    ERROR: DomainError …
+     …
+Actual output:
+    ERROR: DomainError …
+    sqrt will only return a complex result if called with a complex argument. …
+=#</code></pre><p>In the expected output, we can use symbol <code>…</code> to match any number of characters in a line, and symbol <code>⋮</code> to match any number of lines.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;print(collect(&#39;A&#39;:&#39;Z&#39;))\n&quot;, &quot;[&#39;A&#39;, &#39;B&#39;, …, &#39;Z&#39;]\n&quot;)
+display(result)
+#=&gt;
+Test passed at &lt;input&gt;:
+    print(collect(&#39;A&#39;:&#39;Z&#39;))
+Expected output:
+    [&#39;A&#39;, &#39;B&#39;, …, &#39;Z&#39;]
+Actual output:
+    [&#39;A&#39;, &#39;B&#39;, &#39;C&#39;, …, &#39;Y&#39;, &#39;Z&#39;]
+=#
+
+result = runtest(&quot;&lt;input&gt;&quot;, &quot;display(collect(&#39;A&#39;:&#39;Z&#39;))\n&quot;, &quot;26-element Array{Char,1}:\n ⋮\n&quot;)
+display(result)
+#=&gt;
+Test passed at &lt;input&gt;:
+    display(collect(&#39;A&#39;:&#39;Z&#39;))
+Expected output:
+    26-element Array{Char,1}:
+     ⋮
+Actual output:
+    26-element Array{Char,1}:
+     &#39;A&#39;
+     &#39;B&#39;
+     ⋮
+     &#39;Z&#39;
+=#</code></pre><footer><hr/><a class="previous" href="../reference/"><span class="direction">Previous</span><span class="title">API Reference</span></a></footer></article></body></html>
