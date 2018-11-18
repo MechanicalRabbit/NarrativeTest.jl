@@ -9,7 +9,7 @@ validate any embedded test code.*
 [![Windows Build Status][appveyor-img]][appveyor-url]
 [![Code Coverage Status][codecov-img]][codecov-url]
 [![Open Issues][issues-img]][issues-url]
-[![Latest Documentation][doc-latest-img]][doc-latest-url]
+[![Latest Documentation][doc-dev-img]][doc-dev-url]
 [![MIT License][license-img]][license-url]
 
 
@@ -72,7 +72,7 @@ $ julia ./test/runtests.jl
 
 ## Support
 
-For more information, see the [**Documentation**][doc-latest-url].
+For more information, see the [**Documentation**][doc-dev-url].
 
 If you encounter any problems, please submit a [bug report][issues-url].
 
@@ -92,7 +92,7 @@ The NarrativeTest package is licensed under the [MIT License][license-url].
 [codecov-url]: https://codecov.io/gh/rbt-lang/NarrativeTest.jl
 [issues-img]: https://img.shields.io/github/issues/rbt-lang/NarrativeTest.jl.svg
 [issues-url]: https://github.com/rbt-lang/NarrativeTest.jl/issues
-[doc-latest-img]: https://img.shields.io/badge/doc-latest-blue.svg
-[doc-latest-url]: https://rbt-lang.github.io/NarrativeTest.jl/latest/
+[doc-dev-img]: https://img.shields.io/badge/doc-dev-blue.svg
+[doc-dev-url]: https://rbt-lang.github.io/NarrativeTest.jl/dev/
 [license-img]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-url]: https://raw.githubusercontent.com/rbt-lang/NarrativeTest.jl/master/LICENSE.md
