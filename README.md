@@ -9,7 +9,7 @@ validate any embedded test code.*
 [![Windows Build Status][appveyor-img]][appveyor-url]
 [![Code Coverage Status][codecov-img]][codecov-url]
 [![Open Issues][issues-img]][issues-url]
-[![Latest Documentation][doc-dev-img]][doc-dev-url]
+[![Documentation][doc-dev-img]][doc-dev-url]
 [![MIT License][license-img]][license-url]
 
 
