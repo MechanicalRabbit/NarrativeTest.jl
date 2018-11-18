@@ -11,7 +11,6 @@ using Markdown
 Markdown.Code(code) = Markdown.Code("julia", code)
 
 makedocs(
-    format = :html,
     sitename = "NarrativeTest.jl",
     pages = [
         "Home" => "index.md",
