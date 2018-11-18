@@ -294,11 +294,7 @@ function loadfile(parsefile::Function, name::String, file::Union{String,IO})
     loc = Location(name)
     lines =
         try
-            if VERSION < v"0.7.0-DEV.3510"
-                readlines(file, chomp=false)
-            else
-                readlines(file, keep=true)
-            end
+            readlines(file, keep=true)
         catch exc
             return AbstractTest[BrokenTest(loc, exc)]
         end
@@ -472,18 +468,16 @@ function runtest(test::Test)
     # Suppress printing of the output value?
     no_output = endswith(test.code, ";\n") || isempty(test.expect)
     # Generate a module object for running the test code.
-    mod = get!(MODCACHE, test.loc.file, Module(Symbol(basename(test.loc.file))))
+    mod = get!(MODCACHE, test.loc.file) do
+        Module(Symbol(basename(test.loc.file)))
+    end
     # Replace the standard output/error with a pipe.
     orig_have_color = Base.have_color
     Core.eval(Base, :(have_color = false))
     orig_stdout = stdout
     orig_stderr = stderr
     pipe = Pipe()
-    if VERSION < v"0.7.0-DEV.4055"
-        Base.link_pipe(pipe; julia_only_read=true, julia_only_write=false)
-    else
-        Base.link_pipe!(pipe; reader_supports_async=true, writer_supports_async=false)
-    end
+    Base.link_pipe!(pipe; reader_supports_async=true, writer_supports_async=false)
     io = IOContext(pipe.in, :limit=>true, :module=>mod)
     redirect_stdout(pipe.in)
     redirect_stderr(pipe.in)
