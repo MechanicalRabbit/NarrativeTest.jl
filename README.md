@@ -15,14 +15,16 @@ validate any embedded test code.*
 
 ## Quick Start
 
-This package is not (yet) officially registered with the Julia package manager,
-but you can install it from the GitHub repository with `Pkg.clone()`.
+Install the package using the Julia package manager:
 
 ```julia
-julia> Pkg.clone("https://github.com/rbt-lang/NarrativeTest.jl")
+julia> using Pkg
+julia> Pkg.add("NarrativeTest")
 ```
 
-To use NarrativeTest for testing your package, add `test/runtests.jl`:
+Add NarrativeTest to your package as [a test-specific
+dependency](https://docs.julialang.org/en/v1/stdlib/Pkg/index.html#Test-specific-dependencies-1).
+Then create the following `test/runtests.jl`:
 
 ```julia
 using NarrativeTest

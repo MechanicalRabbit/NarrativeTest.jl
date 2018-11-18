@@ -3,30 +3,29 @@
 
 ## Installation
 
-NarrativeTest is not yet registered with the Julia package manager, but you can
-install it from the
-[GitHub repository](https://github.com/rbt-lang/NarrativeTest.jl) using
-`Pkg.clone()`:
+You can install NarrativeTest using the Julia package manager:
+
+```julia
+julia> using Pkg
+julia> Pkg.add("NarrativeTest")
+```
+
+Alternatively, you can install it from the [GitHub
+repository](https://github.com/rbt-lang/NarrativeTest.jl) using `Pkg.clone()`:
 
 ```julia
 julia> Pkg.clone("https://github.com/rbt-lang/NarrativeTest.jl")
 ```
 
-To use NarrativeTest for testing your package, create the following
-`test/runtests.jl` script in the package directory:
+To use NarrativeTest for testing your package, add it as [a test-specific
+dependency](https://docs.julialang.org/en/v1/stdlib/Pkg/index.html#Test-specific-dependencies-1)
+and create the following `test/runtests.jl` script in the package directory:
 
 ```julia
 #!/usr/bin/env julia
 
 using NarrativeTest
 runtests()
-```
-
-Once NarrativeTest is registered with the Julia package manager, you can
-declare it as a dependency in `test/REQUIRE`:
-
-```
-NarrativeTest 0.1
 ```
 
 
