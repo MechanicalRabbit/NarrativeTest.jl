@@ -20,14 +20,16 @@ Location(file::String) = Location(file, 0)
 
 Base.convert(::Type{Location}, file::String) = Location(file, 0)
 
-function Base.show(io::IO, ::MIME"text/plain", loc::Location)
+function Base.print(io::IO, loc::Location)
     print(io, loc.file)
     if loc.line > 0
         print(io, ", line $(loc.line)")
     end
 end
 
-Base. +(loc::Location, n::Int) =
+Base.show(io::IO, ::MIME"text/plain", loc::Location) = print(io, loc)
+
+Base.:+(loc::Location, n::Int) =
     Location(loc.file, loc.line+n)
 
 # Test case.
@@ -39,6 +41,8 @@ struct Test <: AbstractTest
     code::String
     expect::String
 end
+
+location(test::Test) = test.loc
 
 function Base.show(io::IO, mime::MIME"text/plain", test::Test)
     print(io, "Test case at ")
@@ -58,6 +62,8 @@ end
 
 BrokenTest(loc, exc::Exception) =
     BrokenTest(loc, sprint(showerror, exc))
+
+location(err::BrokenTest) = err.loc
 
 function Base.show(io::IO, mime::MIME"text/plain", err::BrokenTest)
     print(io, "Error at ")
@@ -156,8 +162,8 @@ Msg(args...) = Msg(args)
 
 Base.show(io::IO, msg::Msg) = print(io, msg.args...)
 
-indicator(file, n=0) =
-    Msg(CLRL, BOLD, INFO, Esc("Testing " * file * "."^n), NORM)
+indicator(loc) =
+    Msg(CLRL, BOLD, INFO, Esc("Testing " * string(loc)), NORM)
 const MORE =
     Msg(BOLD, INFO, Esc("."), NORM)
 const SUCCESS =
@@ -226,16 +232,14 @@ function runtests(files)
     failed = 0
     errors = 0
     for file in files
-        n = 0
-        print(stderr, indicator(file, n))
         suite = parsemd(file)
         cd(dirname(abspath(file))) do
             for test in suite
+                print(stderr, indicator(location(test)))
                 if test isa BrokenTest
                     print(stderr, CLRL)
                     print(SEPARATOR)
                     display(test)
-                    print(stderr, indicator(file, n))
                     errors += 1
                 elseif test isa Test
                     res = runtest(test)
@@ -245,12 +249,9 @@ function runtests(files)
                         print(stderr, CLRL)
                         print(SEPARATOR)
                         display(res)
-                        print(stderr, indicator(file, n))
                         failed += 1
                     end
                 end
-                n += 1
-                print(stderr, MORE)
             end
         end
         print(stderr, CLRL)
