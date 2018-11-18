@@ -1,7 +1,7 @@
 var documenterSearchIndex = {"docs": [
 
 {
-    "location": "index.html#",
+    "location": "#",
     "page": "Home",
     "title": "Home",
     "category": "page",
@@ -9,7 +9,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#NarrativeTest.jl-Documentation-1",
+    "location": "#NarrativeTest.jl-Documentation-1",
     "page": "Home",
     "title": "NarrativeTest.jl Documentation",
     "category": "section",
@@ -17,7 +17,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#Contents-1",
+    "location": "#Contents-1",
     "page": "Home",
     "title": "Contents",
     "category": "section",
@@ -25,7 +25,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#Index-1",
+    "location": "#Index-1",
     "page": "Home",
     "title": "Index",
     "category": "section",
@@ -33,7 +33,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "guide.html#",
+    "location": "guide/#",
     "page": "Usage Guide",
     "title": "Usage Guide",
     "category": "page",
@@ -41,7 +41,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "guide.html#Usage-Guide-1",
+    "location": "guide/#Usage-Guide-1",
     "page": "Usage Guide",
     "title": "Usage Guide",
     "category": "section",
@@ -49,7 +49,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "guide.html#Installation-1",
+    "location": "guide/#Installation-1",
     "page": "Usage Guide",
     "title": "Installation",
     "category": "section",
@@ -57,7 +57,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "guide.html#Creating-tests-1",
+    "location": "guide/#Creating-tests-1",
     "page": "Usage Guide",
     "title": "Creating tests",
     "category": "section",
@@ -65,7 +65,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "guide.html#Running-the-tests-1",
+    "location": "guide/#Running-the-tests-1",
     "page": "Usage Guide",
     "title": "Running the tests",
     "category": "section",
@@ -73,7 +73,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "reference.html#",
+    "location": "reference/#",
     "page": "API Reference",
     "title": "API Reference",
     "category": "page",
@@ -81,39 +81,39 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "reference.html#NarrativeTest.runtests",
+    "location": "reference/#NarrativeTest.runtests",
     "page": "API Reference",
     "title": "NarrativeTest.runtests",
     "category": "function",
-    "text": "runtests(files)\n\nLoads the specified Markdown files to extract and run the embedded test cases. Returns true if the testing is successful, false otherwise.\n\nruntests()\n\nIn this form, test files are specified as command-line parameters.  When invoked without parameters, loads all *.md files in the program directory. Exits with code 0 if the testing is successful, 1 otherwise.  Use this form in test/runtests.jl:\n\nusing NarrativeTest\nruntests()\n\n\n\n"
+    "text": "runtests(files)\n\nLoads the specified Markdown files to extract and run the embedded test cases. Returns true if the testing is successful, false otherwise.\n\nruntests()\n\nIn this form, test files are specified as command-line parameters.  When invoked without parameters, loads all *.md files in the program directory. Exits with code 0 if the testing is successful, 1 otherwise.  Use this form in test/runtests.jl:\n\nusing NarrativeTest\nruntests()\n\n\n\n\n\n"
 },
 
 {
-    "location": "reference.html#NarrativeTest.runtest",
+    "location": "reference/#NarrativeTest.runtest",
     "page": "API Reference",
     "title": "NarrativeTest.runtest",
     "category": "function",
-    "text": "runtest(test::Test)\nruntest(loc, code, expect)\n\nRuns the given test case, returns the result.\n\n\n\n"
+    "text": "runtest(test::Test)\nruntest(loc, code, expect)\n\nRuns the given test case, returns the result.\n\n\n\n\n\n"
 },
 
 {
-    "location": "reference.html#NarrativeTest.parsemd",
+    "location": "reference/#NarrativeTest.parsemd",
     "page": "API Reference",
     "title": "NarrativeTest.parsemd",
     "category": "function",
-    "text": "parsemd(file)\nparsemd(name, io)\n\nParses the specified Markdown file to extract the embedded test suite.  Returns a list of test cases.\n\n\n\n"
+    "text": "parsemd(file)\nparsemd(name, io)\n\nParses the specified Markdown file to extract the embedded test suite.  Returns a list of test cases.\n\n\n\n\n\n"
 },
 
 {
-    "location": "reference.html#NarrativeTest.parsejl",
+    "location": "reference/#NarrativeTest.parsejl",
     "page": "API Reference",
     "title": "NarrativeTest.parsejl",
     "category": "function",
-    "text": "parsejl(file)\nparsejl(name, io)\n\nLoads the specified Julia source file and extracts the embedded test suite. Returns a list of test cases.\n\n\n\n"
+    "text": "parsejl(file)\nparsejl(name, io)\n\nLoads the specified Julia source file and extracts the embedded test suite. Returns a list of test cases.\n\n\n\n\n\n"
 },
 
 {
-    "location": "reference.html#API-Reference-1",
+    "location": "reference/#API-Reference-1",
     "page": "API Reference",
     "title": "API Reference",
     "category": "section",
@@ -121,7 +121,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "test.html#",
+    "location": "test/#",
     "page": "Test Suite",
     "title": "Test Suite",
     "category": "page",
@@ -129,7 +129,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "test.html#Test-Suite-1",
+    "location": "test/#Test-Suite-1",
     "page": "Test Suite",
     "title": "Test Suite",
     "category": "section",
@@ -137,7 +137,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "test.html#Running-the-tests-1",
+    "location": "test/#Running-the-tests-1",
     "page": "Test Suite",
     "title": "Running the tests",
     "category": "section",
@@ -145,7 +145,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "test.html#Extracting-test-cases-1",
+    "location": "test/#Extracting-test-cases-1",
     "page": "Test Suite",
     "title": "Extracting test cases",
     "category": "section",
@@ -153,7 +153,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "test.html#Running-one-test-1",
+    "location": "test/#Running-one-test-1",
     "page": "Test Suite",
     "title": "Running one test",
     "category": "section",
