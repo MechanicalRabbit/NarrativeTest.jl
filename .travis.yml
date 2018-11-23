@@ -3,12 +3,12 @@
 language: julia
 
 os:
-  - linux
-  - osx
+- linux
+- osx
 
 julia:
-  - 1.0
-  - nightly
+- 1.0
+- nightly
 
 notifications:
   email: false
@@ -18,8 +18,8 @@ env:
   - DOCUMENTER_DEBUG=true
 
 after_success:
-  # push coverage results
-  - julia -e 'using Pkg; cd(Pkg.dir("NarrativeTest")); include("test/coverage.jl")'
+# push coverage results
+- julia -e 'using Pkg; cd(Pkg.dir("NarrativeTest")); include("test/coverage.jl")'
 
 jobs:
   include:
@@ -28,5 +28,5 @@ jobs:
     os: linux
     julia: 1.0
     script:
-     - julia -e 'using Pkg; cd(Pkg.dir("NarrativeTest")); include("doc/make.jl")'
+    - julia -e 'using Pkg; cd(Pkg.dir("NarrativeTest")); include("doc/make.jl")'
     after_success: skip

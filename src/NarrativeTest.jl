@@ -4,8 +4,6 @@
 
 module NarrativeTest
 
-using Compat
-
 export
     runtests
 
