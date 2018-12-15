@@ -195,6 +195,7 @@ end
     runtests(files)
 
 Loads the specified Markdown files to extract and run the embedded test cases.
+When a directory is passed, loads all `*.md` files in the directory.
 Returns `true` if the testing is successful, `false` otherwise.
 
     runtests()
@@ -208,24 +209,12 @@ in `test/runtests.jl`:
     runtests()
 """
 function runtests()
-    args = String[]
-    if !isempty(ARGS)
-        args = ARGS
-    else
-        base = relpath(dirname(abspath(PROGRAM_FILE)))
-        for (root, dirs, files) in walkdir(base, follow_symlinks=true)
-            for file in files
-                if splitext(file)[2] == ".md"
-                    push!(args, joinpath(root, file))
-                end
-            end
-        end
-        sort!(args)
-    end
+    args = !isempty(ARGS) ? ARGS : [relpath(dirname(abspath(PROGRAM_FILE)))]
     exit(!runtests(args))
 end
 
 function runtests(files)
+    files = vcat(findmd.(files)...)
     passed = 0
     failed = 0
     errors = 0
@@ -262,6 +251,22 @@ function runtests(files)
     display(summary)
     println(stderr, success ? SUCCESS : FAILURE)
     return success
+end
+
+# Find `*.md` files in the given directory.
+
+function findmd(base)
+    isdir(base) || return [base]
+    mdfiles = String[]
+    for (root, dirs, files) in walkdir(base, follow_symlinks=true)
+        for file in files
+            if splitext(file)[2] == ".md"
+                push!(mdfiles, joinpath(root, file))
+            end
+        end
+    end
+    sort!(mdfiles)
+    return mdfiles
 end
 
 # Load a file and extract the embedded tests.
