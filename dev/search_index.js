@@ -85,7 +85,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "NarrativeTest.runtests",
     "category": "function",
-    "text": "runtests(files)\n\nLoads the specified Markdown files to extract and run the embedded test cases. Returns true if the testing is successful, false otherwise.\n\nruntests()\n\nIn this form, test files are specified as command-line parameters.  When invoked without parameters, loads all *.md files in the program directory. Exits with code 0 if the testing is successful, 1 otherwise.  Use this form in test/runtests.jl:\n\nusing NarrativeTest\nruntests()\n\n\n\n\n\n"
+    "text": "runtests(files)\n\nLoads the specified Markdown files to extract and run the embedded test cases. When a directory is passed, loads all *.md files in the directory. Returns true if the testing is successful, false otherwise.\n\nruntests()\n\nIn this form, test files are specified as command-line parameters.  When invoked without parameters, loads all *.md files in the program directory. Exits with code 0 if the testing is successful, 1 otherwise.  Use this form in test/runtests.jl:\n\nusing NarrativeTest\nruntests()\n\n\n\n\n\n"
 },
 
 {
