@@ -85,7 +85,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "NarrativeTest.runtests",
     "category": "function",
-    "text": "runtests(files)\n\nLoads the specified Markdown files to extract and run the embedded test cases. When a directory is passed, loads all *.md files in the directory. Returns true if the testing is successful, false otherwise.\n\nruntests()\n\nIn this form, test files are specified as command-line parameters.  When invoked without parameters, loads all *.md files in the program directory. Exits with code 0 if the testing is successful, 1 otherwise.  Use this form in test/runtests.jl:\n\nusing NarrativeTest\nruntests()\n\n\n\n\n\n"
+    "text": "runtests(files) :: Bool\n\nLoads the specified Markdown files to extract and run the embedded test cases. When a directory is passed, loads all *.md files in the directory. Returns true if the testing is successful, false otherwise.\n\nruntests()\n\nIn this form, test files are specified as command-line parameters.  When invoked without parameters, loads all *.md files in the program directory. Exits with code 0 if the testing is successful, 1 otherwise.  Use this form in test/runtests.jl:\n\nusing NarrativeTest\nruntests()\n\n\n\n\n\n"
 },
 
 {
@@ -93,7 +93,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "NarrativeTest.runtest",
     "category": "function",
-    "text": "runtest(test::Test)\nruntest(loc, code, expect)\n\nRuns the given test case, returns the result.\n\n\n\n\n\n"
+    "text": "runtest(test::Test) :: AbstractResult\nruntest(loc, code, expect) :: AbstractResult\n\nRuns the given test case, returns the result.\n\n\n\n\n\n"
 },
 
 {
@@ -101,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "NarrativeTest.parsemd",
     "category": "function",
-    "text": "parsemd(file)\nparsemd(name, io)\n\nParses the specified Markdown file to extract the embedded test suite.  Returns a list of test cases.\n\n\n\n\n\n"
+    "text": "parsemd(file) :: Vector{AbstractTest}\nparsemd(name, io) :: Vector{AbstractTest}\n\nParses the specified Markdown file to extract the embedded test suite.  Returns a list of test cases.\n\n\n\n\n\n"
 },
 
 {
@@ -109,7 +109,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "NarrativeTest.parsejl",
     "category": "function",
-    "text": "parsejl(file)\nparsejl(name, io)\n\nLoads the specified Julia source file and extracts the embedded test suite. Returns a list of test cases.\n\n\n\n\n\n"
+    "text": "parsejl(file) :: Vector{AbstractTest}\nparsejl(name, io) :: Vector{AbstractTest}\n\nLoads the specified Julia source file and extracts the embedded test suite. Returns a list of test cases.\n\n\n\n\n\n"
 },
 
 {
