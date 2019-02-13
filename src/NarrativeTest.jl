@@ -192,7 +192,7 @@ end
 # Implementation of `test/runtests.jl`.
 
 """
-    runtests(files)
+    runtests(files) :: Bool
 
 Loads the specified Markdown files to extract and run the embedded test cases.
 When a directory is passed, loads all `*.md` files in the directory.
@@ -272,8 +272,8 @@ end
 # Load a file and extract the embedded tests.
 
 """
-    parsemd(file)
-    parsemd(name, io)
+    parsemd(file) :: Vector{AbstractTest}
+    parsemd(name, io) :: Vector{AbstractTest}
 
 Parses the specified Markdown file to extract the embedded test suite.  Returns
 a list of test cases.
@@ -282,8 +282,8 @@ parsemd(args...) =
     loadfile(parsemd, args...)
 
 """
-    parsejl(file)
-    parsejl(name, io)
+    parsejl(file) :: Vector{AbstractTest}
+    parsejl(name, io) :: Vector{AbstractTest}
 
 Loads the specified Julia source file and extracts the embedded test suite.
 Returns a list of test cases.
@@ -463,8 +463,8 @@ end
 const MODCACHE = Dict{String,Module}()
 
 """
-    runtest(test::Test)
-    runtest(loc, code, expect)
+    runtest(test::Test) :: AbstractResult
+    runtest(loc, code, expect) :: AbstractResult
 
 Runs the given test case, returns the result.
 """
