@@ -1,7 +1,7 @@
 # Release Notes
 
 
-## v0.1.2
+## v0.2.0
 
 - When a directory name is passed as a parameter, test all `*.md` files in the
   directory.
