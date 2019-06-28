@@ -1,6 +1,11 @@
 # Release Notes
 
 
+## v0.3.0
+
+- Provide `include()` and `eval()` functions.
+
+
 ## v0.2.0
 
 - When a directory name is passed as a parameter, test all `*.md` files in the

@@ -357,6 +357,30 @@ has no expected output.
         ⋮
     =#
 
+Functions `include` and `eval` are available in the test code.
+
+    result = runtest("<input>", "include(\"included.jl\")", "Hello from included.jl!\n")
+    display(result)
+    #=>
+    Test passed at <input>:
+        include("included.jl")
+    Expected output:
+        Hello from included.jl!
+    Actual output:
+        Hello from included.jl!
+    =#
+
+    result = runtest("<input>", "eval(:(print(\"Hello from eval!\")))", "Hello from eval!\n")
+    display(result)
+    #=>
+    Test passed at <input>:
+        eval(:(print("Hello from eval!")))
+    Expected output:
+        Hello from eval!
+    Actual output:
+        Hello from eval!
+    =#
+
 When the test raises an exception, the error message (but not the stack trace)
 is included with the output.
 

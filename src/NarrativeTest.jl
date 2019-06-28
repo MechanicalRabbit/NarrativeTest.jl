@@ -473,7 +473,12 @@ function runtest(test::Test)
     no_output = endswith(test.code, ";\n") || isempty(test.expect)
     # Generate a module object for running the test code.
     mod = get!(MODCACHE, test.loc.file) do
-        Module(Symbol(basename(test.loc.file)))
+        mod = Module(Symbol(basename(test.loc.file)))
+        @eval mod begin
+            eval(x) = Core.eval($mod, x)
+            include(p) = Base.include($mod, p)
+        end
+        mod
     end
     # Replace the standard output/error with a pipe.
     orig_have_color = Base.have_color
@@ -496,9 +501,11 @@ function runtest(test::Test)
                 try
                     body = Base.parse_input_line("\n" ^ max(0, test.loc.line-1) * test.code,
                                                  filename=basename(test.loc.file))
-                    ans = Core.eval(mod, body)
-                    if ans !== nothing && !no_output
-                        show(io, ans)
+                    task_local_storage(:SOURCE_PATH, test.loc.file) do
+                        ans = Core.eval(mod, body)
+                        if ans !== nothing && !no_output
+                            show(io, ans)
+                        end
                     end
                 catch exc
                     trace = stacktrace(catch_backtrace())[1:end-stacktop]
