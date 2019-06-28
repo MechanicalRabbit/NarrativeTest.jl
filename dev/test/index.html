@@ -253,6 +253,26 @@ display(result)
 #=&gt;
 Test passed at &lt;input&gt;:
     ⋮
+=#</code></pre><p>Functions <code>include</code> and <code>eval</code> are available in the test code.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;include(\&quot;included.jl\&quot;)&quot;, &quot;Hello from included.jl!\n&quot;)
+display(result)
+#=&gt;
+Test passed at &lt;input&gt;:
+    include(&quot;included.jl&quot;)
+Expected output:
+    Hello from included.jl!
+Actual output:
+    Hello from included.jl!
+=#
+
+result = runtest(&quot;&lt;input&gt;&quot;, &quot;eval(:(print(\&quot;Hello from eval!\&quot;)))&quot;, &quot;Hello from eval!\n&quot;)
+display(result)
+#=&gt;
+Test passed at &lt;input&gt;:
+    eval(:(print(&quot;Hello from eval!&quot;)))
+Expected output:
+    Hello from eval!
+Actual output:
+    Hello from eval!
 =#</code></pre><p>When the test raises an exception, the error message (but not the stack trace) is included with the output.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;sqrt(-1)\n&quot;, &quot;ERROR: DomainError …\n …&quot;)
 display(result)
 #=&gt;
