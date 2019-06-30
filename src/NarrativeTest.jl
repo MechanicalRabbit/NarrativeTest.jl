@@ -498,6 +498,10 @@ function runtest(test::Test)
             # Run the test code and print the result.
             stacktop = length(stacktrace())
             try
+                tls = task_local_storage()
+                has_source_path = haskey(tls, :SOURCE_PATH)
+                source_path = get(tls, :SOURCE_PATH, nothing)
+                tls[:SOURCE_PATH] = abspath(basename(test.loc.file))
                 try
                     body = Base.parse_input_line("\n" ^ max(0, test.loc.line-1) * test.code,
                                                  filename=basename(test.loc.file))
@@ -511,6 +515,11 @@ function runtest(test::Test)
                     showerror(stderr, exc, trace; backtrace=false)
                 end
                 println(io)
+                if has_source_path
+                    tls[:SOURCE_PATH] = source_path
+                else
+                    delete!(tls, :SOURCE_PATH)
+                end
             finally
                 # Restore the standard output/error.
                 popdisplay()
