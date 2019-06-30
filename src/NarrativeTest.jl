@@ -501,11 +501,9 @@ function runtest(test::Test)
                 try
                     body = Base.parse_input_line("\n" ^ max(0, test.loc.line-1) * test.code,
                                                  filename=basename(test.loc.file))
-                    task_local_storage(:SOURCE_PATH, test.loc.file) do
-                        ans = Core.eval(mod, body)
-                        if ans !== nothing && !no_output
-                            show(io, ans)
-                        end
+                    ans = Core.eval(mod, body)
+                    if ans !== nothing && !no_output
+                        show(io, ans)
                     end
                 catch exc
                     trace = stacktrace(catch_backtrace())[1:end-stacktop]
