@@ -79,7 +79,7 @@ If you encounter any problems, please submit a [bug report][issues-url].
 
 ## Copyright
 
-Copyright (c) 2017: Prometheus Research, LLC.
+Copyright (c) 2017-2020: Prometheus Research, LLC. & Kyrylo Simonov
 
 The NarrativeTest package is licensed under the [MIT License][license-url].
 
