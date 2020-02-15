@@ -11,10 +11,6 @@ julia:
 - 1.4   # Current stable release
 - nightly
 
-matrix:
-  allow_failures:
-  - julia: nightly
-
 notifications:
   email: false
 
@@ -27,6 +23,8 @@ after_success:
 - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
 
 jobs:
+  allow_failures:
+  - julia: nightly
   include:
   # deploy documentation
   - stage: "Documentation"
