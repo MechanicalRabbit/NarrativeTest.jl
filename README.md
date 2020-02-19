@@ -69,19 +69,7 @@ To test your package, run:
 $ julia ./test/runtests.jl
 ```
 
-
-## Support
-
 For more information, see the [**Documentation**][doc-dev-url].
-
-If you encounter any problems, please submit a [bug report][issues-url].
-
-
-## Copyright
-
-Copyright (c) 2017-2020: Prometheus Research, LLC. & Kyrylo Simonov
-
-The NarrativeTest package is licensed under the [MIT License][license-url].
 
 
 [travis-img]: https://travis-ci.org/rbt-lang/NarrativeTest.jl.svg?branch=master
