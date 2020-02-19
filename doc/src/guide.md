@@ -18,7 +18,7 @@ julia> Pkg.clone("https://github.com/rbt-lang/NarrativeTest.jl")
 ```
 
 To use NarrativeTest for testing your package, add it as [a test-specific
-dependency](https://docs.julialang.org/en/v1/stdlib/Pkg/index.html#Test-specific-dependencies-1)
+dependency](https://julialang.github.io/Pkg.jl/v1/creating-packages/#Adding-tests-to-the-package-1)
 and create the following `test/runtests.jl` script in the package directory:
 
 ```julia
