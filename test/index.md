@@ -421,9 +421,6 @@ in a line, and symbol `⋮` to match any number of lines.
          ⋮
     Actual output:
         26-element Array{Char,1}:
-         'A'
-         'B'
          ⋮
-         'Z'
     =#
 
