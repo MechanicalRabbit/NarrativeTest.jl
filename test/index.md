@@ -416,7 +416,7 @@ A test case may include a precondition.  When the precondition is evaluated to
 
 The precondition must always produce a Boolean value.
 
-    result = runtest("<input>", "2+2\n", pre="1\n", expect="4\n")
+    result = runtest("<input>", "2+2\n", pre="missing\n", expect="4\n")
     display(result)
     #=>
     Test failed at <input>:
@@ -424,7 +424,7 @@ The precondition must always produce a Boolean value.
     Expected output:
         4
     Actual output:
-        ERROR: TypeError: non-boolean (Int64) used in boolean context
+        ERROR: TypeError: non-boolean (Missing) used in boolean context
     =#
 
 Functions `include` and `eval` are available in the test code.
