@@ -50,20 +50,29 @@ ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
 =#</code></pre><h2 id="Extracting-test-cases-1"><a class="docs-heading-anchor" href="#Extracting-test-cases-1">Extracting test cases</a><a class="docs-heading-anchor-permalink" href="#Extracting-test-cases-1" title="Permalink"></a></h2><p>We can extract individual test cases from Markdown and Julia files.  Let us import the respective API.</p><pre><code class="language-julia">using NarrativeTest:
     parsejl,
     parsemd</code></pre><p>Function <code>parsemd()</code> parses the given Markdown file and returns an array of the extracted test cases.</p><pre><code class="language-julia">suite = parsemd(&quot;sample_bad.md_&quot;)
-display(suite)
+foreach(display, suite)
 #=&gt;
-4-element Array{NarrativeTest.AbstractTest,1}:
- NarrativeTest.Test(NarrativeTest.Location(&quot;sample_bad.md_&quot;, 5), &quot;(3+4)*6\n&quot;, &quot;42\n&quot;)
- NarrativeTest.Test(NarrativeTest.Location(&quot;sample_bad.md_&quot;, 9), &quot;2+2\n&quot;, &quot;5\n&quot;)
- NarrativeTest.Test(NarrativeTest.Location(&quot;sample_bad.md_&quot;, 13), &quot;sqrt(-1)\n&quot;, &quot;0.0 + 1.0im\n&quot;)
- NarrativeTest.BrokenTest(NarrativeTest.Location(&quot;sample_bad.md_&quot;, 17), &quot;missing test code&quot;)
+Test case at sample_bad.md_, line 5:
+    (3+4)*6
+Expected output:
+    42
+Test case at sample_bad.md_, line 9:
+    2+2
+Expected output:
+    5
+Test case at sample_bad.md_, line 13:
+    sqrt(-1)
+Expected output:
+    0.0 + 1.0im
+Error at sample_bad.md_, line 17:
+    missing test code
 =#
 
 suite = parsemd(&quot;sample_missing.md_&quot;)
-display(suite)
+foreach(display, suite)
 #=&gt;
-1-element Array{NarrativeTest.AbstractTest,1}:
- NarrativeTest.BrokenTest(NarrativeTest.Location(&quot;sample_missing.md_&quot;, 0), &quot;SystemError: … &quot;)
+Error at sample_missing.md_:
+    SystemError: …
 =#</code></pre><p>Function <code>parsemd()</code> recognizes two types of Markdown code blocks: indented and fenced.</p><pre><code class="language-julia">suite = parsemd(
     &quot;&lt;input&gt;&quot;,
     IOBuffer(&quot;&quot;&quot;
@@ -120,9 +129,9 @@ Expected output:
         &quot;&quot;&quot;))
 foreach(display, suite)
 #=&gt;
-Error at &lt;input&gt;, line 5:
+Error at &lt;input&gt;, line 2:
     incomplete fenced code block
-=#</code></pre><p>Function <code>parsejl()</code> parses a Julia file and returns an array of the extracted test cases.  It recognizes comments <code>#-&gt; …</code> and <code>#=&gt; ⋮ =#</code> as single-line and multi-line expected output.</p><pre><code class="language-julia">suite = parsejl(
+=#</code></pre><p>Function <code>parsejl()</code> parses a Julia file and returns an array of the extracted test cases.  It recognizes <code>#?</code> as a precondition and <code>#-&gt; …</code> and <code>#=&gt; ⋮ =#</code> as single-line and multi-line expected output.</p><pre><code class="language-julia">suite = parsejl(
     &quot;&lt;input&gt;&quot;,
     IOBuffer(&quot;&quot;&quot;
         2+2     $(&quot;#-&gt;&quot;) 4
@@ -138,6 +147,9 @@ Error at &lt;input&gt;, line 5:
          ⋮
          &#39;Z&#39;
         =#
+
+        $(&quot;#?&quot;) Sys.WORD_SIZE == 64
+        Int     $(&quot;#-&gt;&quot;) Int64
         &quot;&quot;&quot;))
 foreach(display, suite)
 #=&gt;
@@ -157,6 +169,12 @@ Expected output:
      &#39;B&#39;
      ⋮
      &#39;Z&#39;
+Test case at &lt;input&gt;, line 15:
+    Int
+Precondition:
+    Sys.WORD_SIZE == 64
+Expected output:
+    Int64
 =#</code></pre><p>A test case may have no expected output.</p><pre><code class="language-julia">suite = parsejl(
     &quot;&lt;input&gt;&quot;,
     IOBuffer(&quot;&quot;&quot;
@@ -172,7 +190,6 @@ Test case at &lt;input&gt;, line 1:
     y = sin(x)
 
     @assert y ≈ 0.5
-Expected output:
 =#</code></pre><p>However, it is an error to have an expected output block without any test code.</p><pre><code class="language-julia">suite = parsejl(
     &quot;&lt;input&gt;&quot;,
     IOBuffer(&quot;&quot;&quot;
@@ -195,19 +212,36 @@ Error at &lt;input&gt;, line 1:
         &quot;&quot;&quot;))
 foreach(display, suite)
 #=&gt;
-Error at &lt;input&gt;, line 8:
+Error at &lt;input&gt;, line 2:
     incomplete multiline comment block
 =#</code></pre><h2 id="Running-one-test-1"><a class="docs-heading-anchor" href="#Running-one-test-1">Running one test</a><a class="docs-heading-anchor-permalink" href="#Running-one-test-1" title="Permalink"></a></h2><p>We can run individual tests using the function <code>runtest()</code>.</p><pre><code class="language-julia">using NarrativeTest:
     runtest</code></pre><p>Function <code>runtest()</code> takes a test case object and returns the test result.</p><pre><code class="language-julia">suite = parsemd(&quot;sample_bad.md_&quot;)
 suite = filter(t -&gt; t isa NarrativeTest.Test, suite)
 results = map(runtest, suite)
-display(results)
+foreach(display, results)
 #=&gt;
-3-element Array{NarrativeTest.AbstractResult,1}:
- NarrativeTest.Pass(NarrativeTest.Test( … , &quot;(3+4)*6\n&quot;, &quot;42\n&quot;), &quot;42&quot;)
- NarrativeTest.Fail(NarrativeTest.Test( … , &quot;2+2\n&quot;, &quot;5\n&quot;), &quot;4&quot;, …StackFrame[])
- NarrativeTest.Fail(NarrativeTest.Test( … , &quot;sqrt(-1)\n&quot;, &quot;0.0 + 1.0im\n&quot;), &quot;ERROR: DomainError …\n …&quot;, …StackFrame[ … ])
-=#</code></pre><p><code>runtest()</code> captures the content of the standard output and error streams and matches it against the expected test result.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;&quot;&quot;println(&quot;Hello World!&quot;)\n&quot;&quot;&quot;, &quot;Hello World!\n&quot;)
+Test passed at sample_bad.md_, line 5:
+    (3+4)*6
+Expected output:
+    42
+Actual output:
+    42
+Test failed at sample_bad.md_, line 9:
+    2+2
+Expected output:
+    5
+Actual output:
+    4
+Test failed at sample_bad.md_, line 13:
+    sqrt(-1)
+Expected output:
+    0.0 + 1.0im
+Actual output:
+    ERROR: DomainError …:
+    …
+    Stacktrace:
+    ⋮
+=#</code></pre><p><code>runtest()</code> captures the content of the standard output and error streams and matches it against the expected test result.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;&quot;&quot;println(&quot;Hello World!&quot;)\n&quot;&quot;&quot;, expect=&quot;Hello World!\n&quot;)
 display(result)
 #=&gt;
 Test passed at &lt;input&gt;:
@@ -216,7 +250,7 @@ Expected output:
     Hello World!
 Actual output:
     Hello World!
-=#</code></pre><p><code>runtest()</code> shows the value produced by the last statement of the test code.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;(3+4)*6\n&quot;, &quot;42\n&quot;)
+=#</code></pre><p><code>runtest()</code> shows the value produced by the last statement of the test code.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;(3+4)*6\n&quot;, expect=&quot;42\n&quot;)
 display(result)
 #=&gt;
 Test passed at &lt;input&gt;:
@@ -227,7 +261,7 @@ Actual output:
     42
 =#
 
-result = runtest(&quot;&lt;input&gt;&quot;, &quot;2+2\n&quot;, &quot;5\n&quot;)
+result = runtest(&quot;&lt;input&gt;&quot;, &quot;2+2\n&quot;, expect=&quot;5\n&quot;)
 display(result)
 #=&gt;
 Test failed at &lt;input&gt;:
@@ -236,24 +270,51 @@ Expected output:
     5
 Actual output:
     4
-=#</code></pre><p>However, if this value is equal to <code>nothing</code>, it is not displayed.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;nothing\n&quot;, &quot;\n&quot;)
+=#</code></pre><p>However, if this value is equal to <code>nothing</code>, it is not displayed.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;nothing\n&quot;, expect=&quot;\n&quot;)
 display(result)
 #=&gt;
 Test passed at &lt;input&gt;:
     ⋮
-=#</code></pre><p>This value is also concealed if the test code ends with <code>;</code> of if the test case has no expected output.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;(3+4)*6;\n&quot;, &quot;\n&quot;)
+=#</code></pre><p>This value is also concealed if the test code ends with <code>;</code> of if the test case has no expected output.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;(3+4)*6;\n&quot;, expect=&quot;\n&quot;)
 display(result)
 #=&gt;
 Test passed at &lt;input&gt;:
     ⋮
 =#
 
-result = runtest(&quot;&lt;input&gt;&quot;, &quot;(3+4)*6\n&quot;, &quot;&quot;)
+result = runtest(&quot;&lt;input&gt;&quot;, &quot;(3+4)*6\n&quot;, expect=nothing)
 display(result)
 #=&gt;
 Test passed at &lt;input&gt;:
     ⋮
-=#</code></pre><p>Functions <code>include</code> and <code>eval</code> are available in the test code.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;include(\&quot;included.jl\&quot;)&quot;, &quot;Hello from included.jl!\n&quot;)
+=#</code></pre><p>A test case may include a precondition.  When the precondition is evaluated to <code>false</code>, the test case is skipped.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;2+2\n&quot;, pre=&quot;0 &lt; 1\n&quot;, expect=&quot;4\n&quot;)
+display(result)
+#=&gt;
+Test passed at &lt;input&gt;:
+    2+2
+Expected output:
+    4
+Actual output:
+    4
+=#
+
+result = runtest(&quot;&lt;input&gt;&quot;, &quot;2+2\n&quot;, pre=&quot;0 &gt;= 1\n&quot;, expect=&quot;5\n&quot;)
+display(result)
+#=&gt;
+Test skipped at &lt;input&gt;:
+    2+2
+Failed precondition:
+    0 &gt;= 1
+=#</code></pre><p>The precondition must always produce a Boolean value.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;2+2\n&quot;, pre=&quot;1\n&quot;, expect=&quot;4\n&quot;)
+display(result)
+#=&gt;
+Test failed at &lt;input&gt;:
+    2+2
+Expected output:
+    4
+Actual output:
+    ERROR: TypeError: non-boolean (Int64) used in boolean context
+=#</code></pre><p>Functions <code>include</code> and <code>eval</code> are available in the test code.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;include(\&quot;included.jl\&quot;)&quot;, expect=&quot;Hello from included.jl!\n&quot;)
 display(result)
 #=&gt;
 Test passed at &lt;input&gt;:
@@ -264,7 +325,7 @@ Actual output:
     Hello from included.jl!
 =#
 
-result = runtest(&quot;&lt;input&gt;&quot;, &quot;eval(:(print(\&quot;Hello from eval!\&quot;)))&quot;, &quot;Hello from eval!\n&quot;)
+result = runtest(&quot;&lt;input&gt;&quot;, &quot;eval(:(print(\&quot;Hello from eval!\&quot;)))&quot;, expect=&quot;Hello from eval!\n&quot;)
 display(result)
 #=&gt;
 Test passed at &lt;input&gt;:
@@ -273,7 +334,7 @@ Expected output:
     Hello from eval!
 Actual output:
     Hello from eval!
-=#</code></pre><p>When the test raises an exception, the error message (but not the stack trace) is included with the output.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;sqrt(-1)\n&quot;, &quot;ERROR: DomainError …\n …&quot;)
+=#</code></pre><p>When the test raises an exception, the error message (but not the stack trace) is included with the output.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;sqrt(-1)\n&quot;, expect=&quot;ERROR: DomainError …\n …&quot;)
 display(result)
 #=&gt;
 Test passed at &lt;input&gt;:
@@ -284,7 +345,7 @@ Expected output:
 Actual output:
     ERROR: DomainError …
     sqrt will only return a complex result if called with a complex argument. …
-=#</code></pre><p>In the expected output, we can use symbol <code>…</code> to match any number of characters in a line, and symbol <code>⋮</code> to match any number of lines.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;print(collect(&#39;A&#39;:&#39;Z&#39;))\n&quot;, &quot;[&#39;A&#39;, &#39;B&#39;, …, &#39;Z&#39;]\n&quot;)
+=#</code></pre><p>In the expected output, we can use symbol <code>…</code> to match any number of characters in a line, and symbol <code>⋮</code> to match any number of lines.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;print(collect(&#39;A&#39;:&#39;Z&#39;))\n&quot;, expect=&quot;[&#39;A&#39;, &#39;B&#39;, …, &#39;Z&#39;]\n&quot;)
 display(result)
 #=&gt;
 Test passed at &lt;input&gt;:
@@ -295,7 +356,9 @@ Actual output:
     [&#39;A&#39;, &#39;B&#39;, &#39;C&#39;, …, &#39;Y&#39;, &#39;Z&#39;]
 =#
 
-result = runtest(&quot;&lt;input&gt;&quot;, &quot;display(collect(&#39;A&#39;:&#39;Z&#39;))\n&quot;, &quot;26-element Array{Char,1}:\n ⋮\n&quot;)
+result = runtest(&quot;&lt;input&gt;&quot;, &quot;display(collect(&#39;A&#39;:&#39;Z&#39;))\n&quot;, expect=&quot;26-element Array{Char,1}:\n ⋮\n&quot;)
+
+#? VERSION &lt; v&quot;1.5.0-DEV&quot;
 display(result)
 #=&gt;
 Test passed at &lt;input&gt;:
@@ -305,5 +368,24 @@ Expected output:
      ⋮
 Actual output:
     26-element Array{Char,1}:
+     &#39;A&#39;
+     &#39;B&#39;
      ⋮
-=#</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 25 May 2020 01:54">Monday 25 May 2020</span>. Using Julia version 1.0.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+     &#39;Z&#39;
+=#
+
+#? VERSION &gt;= v&quot;1.5.0-DEV&quot;
+display(result)
+#=&gt;
+Test passed at &lt;input&gt;:
+    display(collect(&#39;A&#39;:&#39;Z&#39;))
+Expected output:
+    26-element Array{Char,1}:
+     ⋮
+Actual output:
+    26-element Array{Char,1}:
+     &#39;A&#39;: ASCII/Unicode U+0041 (category Lu: Letter, uppercase)
+     &#39;B&#39;: ASCII/Unicode U+0042 (category Lu: Letter, uppercase)
+     ⋮
+     &#39;Z&#39;: ASCII/Unicode U+005A (category Lu: Letter, uppercase)
+=#</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Sunday 31 May 2020 06:05">Sunday 31 May 2020</span>. Using Julia version 1.0.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
