@@ -27,9 +27,6 @@ end
 
 Base.show(io::IO, ::MIME"text/plain", loc::Location) = print(io, loc)
 
-Base.:+(loc::Location, n::Int) =
-    Location(loc.file, loc.line+n)
-
 # Text block with position in a file.
 
 struct TextBlock
