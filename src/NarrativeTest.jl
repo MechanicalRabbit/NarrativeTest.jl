@@ -30,14 +30,29 @@ Base.show(io::IO, ::MIME"text/plain", loc::Location) = print(io, loc)
 Base.:+(loc::Location, n::Int) =
     Location(loc.file, loc.line+n)
 
+# Text block with position in a file.
+
+struct TextBlock
+    loc::Location
+    val::String
+end
+
+asexpr(code::TextBlock) =
+    Base.parse_input_line("\n" ^ max(0, code.loc.line-1) * code.val,
+                          filename=basename(code.loc.file))
+
+collapse(lines::Vector{TextBlock}) =
+    !isempty(lines) ? TextBlock(lines[1].loc, join([line.val for line in lines])) : nothing
+
 # Test case.
 
 abstract type AbstractTest end
 
 struct Test <: AbstractTest
     loc::Location
-    code::String
-    expect::String
+    code::TextBlock
+    pre::Union{TextBlock,Nothing}
+    expect::Union{TextBlock,Nothing}
 end
 
 location(test::Test) = test.loc
@@ -47,8 +62,14 @@ function Base.show(io::IO, mime::MIME"text/plain", test::Test)
     show(io, mime, test.loc)
     println(io, ":")
     println(io, indented(test.code))
-    println(io, "Expected output:")
-    println(io, indented(test.expect))
+    if test.pre !== nothing
+        println(io, "Precondition:")
+        println(io, indented(test.pre))
+    end
+    if test.expect !== nothing
+        println(io, "Expected output:")
+        println(io, indented(test.expect))
+    end
 end
 
 # Test case that failed to parse.
@@ -87,7 +108,9 @@ function Base.show(io::IO, mime::MIME"text/plain", pass::Pass)
     println(io, ":")
     println(io, indented(pass.test.code))
     println(io, "Expected output:")
-    println(io, indented(pass.test.expect))
+    if pass.test.expect !== nothing
+        println(io, indented(pass.test.expect))
+    end
     println(io, "Actual output:")
     println(io, indented(pass.output))
 end
@@ -106,7 +129,9 @@ function Base.show(io::IO, mime::MIME"text/plain", fail::Fail)
     println(io, ":")
     println(io, indented(fail.test.code))
     println(io, "Expected output:")
-    println(io, indented(fail.test.expect))
+    if fail.test.expect !== nothing
+        println(io, indented(fail.test.expect))
+    end
     println(io, "Actual output:")
     println(io, indented(fail.output))
     if !isempty(fail.trace)
@@ -114,11 +139,38 @@ function Base.show(io::IO, mime::MIME"text/plain", fail::Fail)
     end
 end
 
+# Skipped test.
+
+struct Skip <: AbstractResult
+    test::Test
+end
+
+function Base.show(io::IO, mime::MIME"text/plain", skip::Skip)
+    print(io, "Test skipped at ")
+    show(io, mime, skip.test.loc)
+    println(io, ":")
+    println(io, indented(skip.test.code))
+    println(io, "Failed precondition:")
+    if skip.test.pre !== nothing
+        println(io, indented(skip.test.pre))
+    end
+end
+
+# Ill-formed test.
+
+struct Error <: AbstractResult
+    test::BrokenTest
+end
+
+Base.show(io::IO, mime::MIME"text/plain", error::Error) =
+    show(io, mime, error.test)
+
 # Summary of the testing results.
 
 struct Summary
     passed::Int
     failed::Int
+    skipped::Int
     errors::Int
 end
 
@@ -128,6 +180,9 @@ function Base.show(io::IO, mime::MIME"text/plain", sum::Summary)
     end
     if sum.failed > 0
         println(io, "Tests failed: ", sum.failed)
+    end
+    if sum.skipped > 0
+        println(io, "Tests skipped: ", sum.skipped)
     end
     if sum.errors > 0
         println(io, "Errors: ", sum.errors)
@@ -189,6 +244,9 @@ function indented(str::AbstractString)
     return String(take!(out))
 end
 
+indented(text::TextBlock) =
+    indented(text.val)
+
 # Implementation of `test/runtests.jl`.
 
 """
@@ -215,35 +273,27 @@ end
 
 function runtests(files)
     files = vcat(findmd.(files)...)
-    passed = 0
-    failed = 0
-    errors = 0
+    passed = failed = skipped = errors = 0
     for file in files
         suite = parsemd(file)
         cd(dirname(abspath(file))) do
             for test in suite
                 print(stderr, indicator(location(test)))
-                if test isa BrokenTest
+                res = runtest(test)
+                if res isa Union{Fail, Error}
                     print(stderr, CLRL)
                     print(SEPARATOR)
-                    display(test)
-                    errors += 1
-                elseif test isa Test
-                    res = runtest(test)
-                    if res isa Pass
-                        passed += 1
-                    elseif res isa Fail
-                        print(stderr, CLRL)
-                        print(SEPARATOR)
-                        display(res)
-                        failed += 1
-                    end
+                    display(res)
                 end
+                passed += res isa Pass
+                failed += res isa Fail
+                skipped += res isa Skip
+                errors += res isa Error
             end
         end
         print(stderr, CLRL)
     end
-    summary = Summary(passed, failed, errors)
+    summary = Summary(passed, failed, skipped, errors)
     success = failed == 0 && errors == 0
     if !success
         print(SEPARATOR)
@@ -279,7 +329,7 @@ Parses the specified Markdown file to extract the embedded test suite.  Returns
 a list of test cases.
 """
 parsemd(args...) =
-    loadfile(parsemd, args...)
+    loadfile(parsemd!, args...)
 
 """
     parsejl(file) :: Vector{AbstractTest}
@@ -289,173 +339,142 @@ Loads the specified Julia source file and extracts the embedded test suite.
 Returns a list of test cases.
 """
 parsejl(args...) =
-    loadfile(parsejl, args...)
+    loadfile(parsejl!, args...)
 
-loadfile(parsefile::Function, file::String) =
-    loadfile(parsefile, file, file)
+loadfile(parsefile!::Function, file::String) =
+    loadfile(parsefile!, file, file)
 
-function loadfile(parsefile::Function, name::String, file::Union{String,IO})
-    loc = Location(name)
+function loadfile(parsefile!::Function, name::String, file::Union{String,IO})
     lines =
         try
             readlines(file, keep=true)
         catch exc
-            return AbstractTest[BrokenTest(loc, exc)]
+            return AbstractTest[BrokenTest(Location(name), exc)]
         end
-    if !isempty(lines)
-        push!(lines, "")
-        return parsefile(loc+1, lines)
-    end
+    stack = [TextBlock(Location(name, i), val) for (i, val) in enumerate(lines)]
+    reverse!(stack)
+    return parsefile!(stack)
 end
 
 # Extract the test suite from Markdown source.
 
-function parsemd(lineloc::Location, lines::Vector{String})
+isblank(line) =
+    isempty(strip(line.val))
+isfence(line) =
+    startswith(line.val, "```") || startswith(line.val, "~~~")
+isindent(line) =
+    startswith(line.val, " "^4)
+
+function unindent(line)
+    val = line.val[5:end]
+    TextBlock(line.loc, !isempty(val) ? val : "\n")
+end
+
+function parsemd!(stack::Vector{TextBlock})
     # Accumulated test cases.
     suite = AbstractTest[]
-    # Accumulated lines of the next code snippet.
-    blk = String[]
-    # Where the snippet started.
-    loc = lineloc
-    # Are we inside a fenced code block?
-    fenced = false
-    # Language of the fenced block.
-    lang = ""
-    # Do we need to process the accumulated code snippet?
-    launch = false
-    # Here, we extract code snippets, either indented or fenced, and pass them to `parsejl()`.
-    for line in lines
-        isend = isempty(line)
-        isblank = isempty(strip(line))
-        isindent = startswith(line, " "^4)
-        isfence = startswith(line, "```") || startswith(line, "~~~")
-        if !fenced
-            # Not in a fenced block.
-            if isend
-                # End of file: we need to process the accumulated snippet.
-                launch = true
-            elseif isfence
-                # Beginning of a fenced block; process the accumulated snippet.
-                lang = rstrip(line)[4:end]
-                launch = true
-                fenced = true
-            elseif isindent && !isblank
-                # Must be an indented code.
-                if isempty(blk)
-                    # Remember where the snippet starts.
-                    loc = lineloc
-                end
-                push!(blk, line[5:end])
-            elseif isblank && !isempty(blk)
-                # An empty line in an indented code block.
-                push!(blk, "\n")
+    # Extract code snippets, either indented or fenced, and pass them to `parsejl!()`.
+    while !isempty(stack)
+        line = pop!(stack)
+        if isfence(line)
+            # Extract a fenced block.
+            fenceloc = line.loc
+            lang = strip(line.val[4:end])
+            jlstack = TextBlock[]
+            while !isempty(stack) && !isfence(stack[end])
+                push!(jlstack, pop!(stack))
+            end
+            if isempty(stack)
+                push!(suite, BrokenTest(fenceloc, "incomplete fenced code block"))
             else
-                # Must be a regular text; process the accumulated snippet.
-                launch = true
+                pop!(stack)
+                if isempty(lang)
+                    reverse!(jlstack)
+                    append!(suite, parsejl!(jlstack))
+                end
             end
-        elseif fenced
-            # In a fenced block.
-            if isend
-                # Unexpected end of file.
-                push!(suite, BrokenTest(lineloc, "incomplete fenced code block"))
-            elseif isfence
-                # End of a fenced block: process the accumulated snippet.
-                launch = true
-                fenced = false
-            elseif !isblank && isempty(blk) && lang == ""
-                # The first line of code.
-                loc = lineloc
-                push!(blk, line)
-            elseif !isempty(blk)
-                # Line of code.
-                push!(blk, line)
+        elseif isindent(line) && !isblank(line)
+            # Extract an indented block.
+            jlstack = TextBlock[unindent(line)]
+            while !isempty(stack) && (isindent(stack[end]) || isblank(stack[end]))
+                push!(jlstack, unindent(pop!(stack)))
             end
+            reverse!(jlstack)
+            append!(suite, parsejl!(jlstack))
         end
-        # Process the accumulated snippet of Julia code.
-        if launch && !isempty(blk)
-            push!(blk, "")
-            append!(suite, parsejl(loc, blk))
-            empty!(blk)
-        end
-        launch = false
-        lineloc += 1
     end
     return suite
 end
 
 # Extract the test suite from Julia source.
 
-function parsejl(lineloc::Location, lines::Vector{String})
+function parsejl!(stack::Vector{TextBlock})
     # Accumulated test cases.
     suite = AbstractTest[]
-    # Accumulated lines of the test code.
-    blk = String[]
-    # Accumulated lines of the expected output.
-    exblk = String[]
-    # Where the test case started.
-    loc = lineloc
-    # Are we inside a multiline comment block?
-    commented = false
-    # Do we need to process the accumulated test case?
-    launch = false
-    # Split the source code and comments into the test code and expected output.
-    for line in lines
-        isend = isempty(line)
-        isblank = isempty(strip(line))
-        if commented && isend
-            # End of file while parsing a multiline output block.
-            push!(suite, BrokenTest(lineloc, "incomplete multiline comment block"))
-        elseif isend
-            # End of file; process the accumulated test case.
-            launch = true
-        elseif !commented && occursin(r"^#=>\s+$", line)
-            # Beginning of a multiline output block.
-            commented = true
-        elseif commented && occursin(r"^=#\s+$", line)
-            # End of the multiline output block.
-            commented = false
-            launch = true
-        elseif commented
-            # In a multiline output block.
-            push!(exblk, rstrip(line)*"\n")
-        elseif occursin(r"^\s*#->\s+", line)
-            # Standalone output line.
-            m = match(r"^\s*#->\s+(.*)$", line)
-            push!(exblk, rstrip(m[1])*"\n")
-            launch = true
-        elseif occursin(r"\s#->\s+", line)
-            # Code and output on the same line.
-            m = match(r"^(.+)\s#->\s+(.*)$", line)
-            if isempty(blk)
-                loc = lineloc
-            end
-            push!(blk, rstrip(m[1])*"\n")
-            push!(exblk, rstrip(m[2])*"\n")
-            launch = true
-        elseif isempty(blk) && !isblank
-            # First line of code.
-            loc = lineloc
-            push!(blk, line)
-        elseif !isempty(blk)
-            # Code block continues.
-            push!(blk, line)
+    # Find and parse test cases.
+    while !isempty(stack)
+        if isblank(stack[end])
+            pop!(stack)
+        else
+            l = length(stack)
+            push!(suite, parsecase!(stack))
+            l != length(stack) || pop!(stack)
         end
-        # Process the test case.
-        if launch && isempty(blk) && !isempty(exblk)
-            push!(suite, BrokenTest(loc, "missing test code"))
-            empty!(exblk)
-        elseif launch && !isempty(blk)
-            code = rstrip(join(blk)) * "\n"
-            expect = join(exblk)
-            test = Test(loc, code, expect)
-            push!(suite, test)
-            empty!(blk)
-            empty!(exblk)
-        end
-        launch = false
-        lineloc += 1
     end
     return suite
+end
+
+# Extract a test case from Julia source.
+
+function parsecase!(stack::Vector{TextBlock})
+    loc = stack[end].loc
+    pre = TextBlock[]
+    code = TextBlock[]
+    expect = TextBlock[]
+    # Parse precondition.
+    if occursin(r"^\s*#\?\s+", stack[end].val)
+        m = match(r"^\s*#\?\s+(.*)$", stack[end].val)
+        push!(pre, TextBlock(stack[end].loc, rstrip(m[1])))
+        pop!(stack)
+        while !isempty(stack) && isblank(stack[end])
+            pop!(stack)
+        end
+    end
+    # Parse the code block.
+    while !isempty(stack) && !occursin(r"^\s*#(\?|->|=>)\s+", stack[end].val)
+        line = pop!(stack)
+        if occursin(r"\s*#->\s+", line.val)
+            # Code and output on the same line.
+            m = match(r"^(.+)\s#->\s+(.*)$", line.val)
+            push!(code, TextBlock(line.loc, rstrip(m[1])*"\n"))
+            push!(expect, TextBlock(line.loc, rstrip(m[2])*"\n"))
+            break
+        end
+        push!(code, line)
+    end
+    # Skip trailing empty lines.
+    while !isempty(code) && isblank(code[end])
+        pop!(code)
+    end
+    if isempty(expect) && !isempty(stack)
+        if occursin(r"^\s*#->\s+", stack[end].val)
+            # Standalone output line.
+            line = pop!(stack)
+            m = match(r"^\s*#->\s+(.*)$", line.val)
+            push!(expect, TextBlock(line.loc, rstrip(m[1])*"\n"))
+        elseif occursin(r"^\s*#=>\s+$", stack[end].val)
+            # Multiline output block.
+            commentline = pop!(stack)
+            while !isempty(stack) && !occursin(r"^\s*=#\s+$", stack[end].val)
+                line = pop!(stack)
+                push!(expect, line)
+            end
+            !isempty(stack) || return BrokenTest(commentline.loc, "incomplete multiline comment block")
+            pop!(stack)
+        end
+    end
+    !isempty(code) || return BrokenTest(loc, "missing test code")
+    return Test(loc, collapse(code), collapse(pre), collapse(expect))
 end
 
 # Run a single test case.
@@ -464,13 +483,13 @@ const MODCACHE = Dict{String,Module}()
 
 """
     runtest(test::Test) :: AbstractResult
-    runtest(loc, code, expect) :: AbstractResult
+    runtest(loc, code; pre=nothing, expect=nothing) :: AbstractResult
 
 Runs the given test case, returns the result.
 """
 function runtest(test::Test)
     # Suppress printing of the output value?
-    no_output = endswith(test.code, ";\n") || isempty(test.expect)
+    no_output = endswith(test.code.val, ";\n") || test.expect === nothing
     # Generate a module object for running the test code.
     mod = get!(MODCACHE, test.loc.file) do
         mod = Module(Symbol(basename(test.loc.file)))
@@ -492,6 +511,7 @@ function runtest(test::Test)
     redirect_stderr(pipe.in)
     pushdisplay(TextDisplay(io))
     trace = StackTraces.StackTrace()
+    skipped = false
     output = ""
     @sync begin
         @async begin
@@ -503,11 +523,20 @@ function runtest(test::Test)
                 source_path = get(tls, :SOURCE_PATH, nothing)
                 tls[:SOURCE_PATH] = abspath(basename(test.loc.file))
                 try
-                    body = Base.parse_input_line("\n" ^ max(0, test.loc.line-1) * test.code,
-                                                 filename=basename(test.loc.file))
-                    ans = Core.eval(mod, body)
-                    if ans !== nothing && !no_output
-                        show(io, ans)
+                    if test.pre !== nothing
+                        pre_body = asexpr(test.pre)
+                        pre = Core.eval(mod, pre_body)
+                        pre::Bool
+                        if !pre
+                            skipped = true
+                        end
+                    end
+                    if !skipped
+                        body = asexpr(test.code)
+                        ans = Core.eval(mod, body)
+                        if ans !== nothing && !no_output
+                            show(io, ans)
+                        end
                     end
                 catch exc
                     trace = stacktrace(catch_backtrace())[1:end-stacktop]
@@ -535,15 +564,24 @@ function runtest(test::Test)
             close(pipe.out)
         end
     end
+    if skipped
+        return Skip(test)
+    end
     # Compare the actual output with the expected output and generate the result.
-    expect = rstrip(test.expect)
+    expect = test.expect !== nothing ? rstrip(test.expect.val) : ""
     actual = rstrip(join(map(rstrip, eachline(IOBuffer(output))), "\n"))
     return expect == actual || occursin(expect2regex(expect), actual) ?
         Pass(test, actual) :
         Fail(test, actual, trace)
 end
 
-runtest(loc, code, expect) = runtest(Test(loc, code, expect))
+runtest(test::BrokenTest) =
+    Error(test)
+
+runtest(loc, code; pre=nothing, expect=nothing) =
+    runtest(Test(loc, TextBlock(loc, code),
+                      pre !== nothing ? TextBlock(loc, pre) : nothing,
+                      expect !== nothing ? TextBlock(loc, expect) : nothing))
 
 # Convert expected output block to a regex.
 

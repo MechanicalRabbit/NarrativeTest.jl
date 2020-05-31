@@ -92,20 +92,29 @@ Function `parsemd()` parses the given Markdown file and returns an array of the
 extracted test cases.
 
     suite = parsemd("sample_bad.md_")
-    display(suite)
+    foreach(display, suite)
     #=>
-    4-element Array{NarrativeTest.AbstractTest,1}:
-     NarrativeTest.Test(NarrativeTest.Location("sample_bad.md_", 5), "(3+4)*6\n", "42\n")
-     NarrativeTest.Test(NarrativeTest.Location("sample_bad.md_", 9), "2+2\n", "5\n")
-     NarrativeTest.Test(NarrativeTest.Location("sample_bad.md_", 13), "sqrt(-1)\n", "0.0 + 1.0im\n")
-     NarrativeTest.BrokenTest(NarrativeTest.Location("sample_bad.md_", 17), "missing test code")
+    Test case at sample_bad.md_, line 5:
+        (3+4)*6
+    Expected output:
+        42
+    Test case at sample_bad.md_, line 9:
+        2+2
+    Expected output:
+        5
+    Test case at sample_bad.md_, line 13:
+        sqrt(-1)
+    Expected output:
+        0.0 + 1.0im
+    Error at sample_bad.md_, line 17:
+        missing test code
     =#
 
     suite = parsemd("sample_missing.md_")
-    display(suite)
+    foreach(display, suite)
     #=>
-    1-element Array{NarrativeTest.AbstractTest,1}:
-     NarrativeTest.BrokenTest(NarrativeTest.Location("sample_missing.md_", 0), "SystemError: … ")
+    Error at sample_missing.md_:
+        SystemError: …
     =#
 
 Function `parsemd()` recognizes two types of Markdown code blocks: indented and
@@ -175,13 +184,13 @@ It is an error if a fenced code block is not closed.
             """))
     foreach(display, suite)
     #=>
-    Error at <input>, line 5:
+    Error at <input>, line 2:
         incomplete fenced code block
     =#
 
 Function `parsejl()` parses a Julia file and returns an array of the extracted
-test cases.  It recognizes comments `#-> …` and `#=> ⋮ =#` as single-line and
-multi-line expected output.
+test cases.  It recognizes `#?` as a precondition and `#-> …` and `#=> ⋮ =#` as
+single-line and multi-line expected output.
 
     suite = parsejl(
         "<input>",
@@ -199,6 +208,9 @@ multi-line expected output.
              ⋮
              'Z'
             =#
+
+            $("#?") Sys.WORD_SIZE == 64
+            Int     $("#->") Int64
             """))
     foreach(display, suite)
     #=>
@@ -218,6 +230,12 @@ multi-line expected output.
          'B'
          ⋮
          'Z'
+    Test case at <input>, line 15:
+        Int
+    Precondition:
+        Sys.WORD_SIZE == 64
+    Expected output:
+        Int64
     =#
 
 A test case may have no expected output.
@@ -237,7 +255,6 @@ A test case may have no expected output.
         y = sin(x)
 
         @assert y ≈ 0.5
-    Expected output:
     =#
 
 However, it is an error to have an expected output block without any test code.
@@ -268,7 +285,7 @@ It is also an error if a multi-line output block is not closed.
             """))
     foreach(display, suite)
     #=>
-    Error at <input>, line 8:
+    Error at <input>, line 2:
         incomplete multiline comment block
     =#
 
@@ -285,18 +302,35 @@ Function `runtest()` takes a test case object and returns the test result.
     suite = parsemd("sample_bad.md_")
     suite = filter(t -> t isa NarrativeTest.Test, suite)
     results = map(runtest, suite)
-    display(results)
+    foreach(display, results)
     #=>
-    3-element Array{NarrativeTest.AbstractResult,1}:
-     NarrativeTest.Pass(NarrativeTest.Test( … , "(3+4)*6\n", "42\n"), "42")
-     NarrativeTest.Fail(NarrativeTest.Test( … , "2+2\n", "5\n"), "4", …StackFrame[])
-     NarrativeTest.Fail(NarrativeTest.Test( … , "sqrt(-1)\n", "0.0 + 1.0im\n"), "ERROR: DomainError …\n …", …StackFrame[ … ])
+    Test passed at sample_bad.md_, line 5:
+        (3+4)*6
+    Expected output:
+        42
+    Actual output:
+        42
+    Test failed at sample_bad.md_, line 9:
+        2+2
+    Expected output:
+        5
+    Actual output:
+        4
+    Test failed at sample_bad.md_, line 13:
+        sqrt(-1)
+    Expected output:
+        0.0 + 1.0im
+    Actual output:
+        ERROR: DomainError …:
+        …
+        Stacktrace:
+        ⋮
     =#
 
 `runtest()` captures the content of the standard output and error streams and
 matches it against the expected test result.
 
-    result = runtest("<input>", """println("Hello World!")\n""", "Hello World!\n")
+    result = runtest("<input>", """println("Hello World!")\n""", expect="Hello World!\n")
     display(result)
     #=>
     Test passed at <input>:
@@ -309,7 +343,7 @@ matches it against the expected test result.
 
 `runtest()` shows the value produced by the last statement of the test code.
 
-    result = runtest("<input>", "(3+4)*6\n", "42\n")
+    result = runtest("<input>", "(3+4)*6\n", expect="42\n")
     display(result)
     #=>
     Test passed at <input>:
@@ -320,7 +354,7 @@ matches it against the expected test result.
         42
     =#
 
-    result = runtest("<input>", "2+2\n", "5\n")
+    result = runtest("<input>", "2+2\n", expect="5\n")
     display(result)
     #=>
     Test failed at <input>:
@@ -333,7 +367,7 @@ matches it against the expected test result.
 
 However, if this value is equal to `nothing`, it is not displayed.
 
-    result = runtest("<input>", "nothing\n", "\n")
+    result = runtest("<input>", "nothing\n", expect="\n")
     display(result)
     #=>
     Test passed at <input>:
@@ -343,23 +377,59 @@ However, if this value is equal to `nothing`, it is not displayed.
 This value is also concealed if the test code ends with `;` of if the test case
 has no expected output.
 
-    result = runtest("<input>", "(3+4)*6;\n", "\n")
+    result = runtest("<input>", "(3+4)*6;\n", expect="\n")
     display(result)
     #=>
     Test passed at <input>:
         ⋮
     =#
 
-    result = runtest("<input>", "(3+4)*6\n", "")
+    result = runtest("<input>", "(3+4)*6\n", expect=nothing)
     display(result)
     #=>
     Test passed at <input>:
         ⋮
+    =#
+
+A test case may include a precondition.  When the precondition is evaluated to
+`false`, the test case is skipped.
+
+    result = runtest("<input>", "2+2\n", pre="0 < 1\n", expect="4\n")
+    display(result)
+    #=>
+    Test passed at <input>:
+        2+2
+    Expected output:
+        4
+    Actual output:
+        4
+    =#
+
+    result = runtest("<input>", "2+2\n", pre="0 >= 1\n", expect="5\n")
+    display(result)
+    #=>
+    Test skipped at <input>:
+        2+2
+    Failed precondition:
+        0 >= 1
+    =#
+
+The precondition must always produce a Boolean value.
+
+    result = runtest("<input>", "2+2\n", pre="1\n", expect="4\n")
+    display(result)
+    #=>
+    Test failed at <input>:
+        2+2
+    Expected output:
+        4
+    Actual output:
+        ERROR: TypeError: non-boolean (Int64) used in boolean context
     =#
 
 Functions `include` and `eval` are available in the test code.
 
-    result = runtest("<input>", "include(\"included.jl\")", "Hello from included.jl!\n")
+    result = runtest("<input>", "include(\"included.jl\")", expect="Hello from included.jl!\n")
     display(result)
     #=>
     Test passed at <input>:
@@ -370,7 +440,7 @@ Functions `include` and `eval` are available in the test code.
         Hello from included.jl!
     =#
 
-    result = runtest("<input>", "eval(:(print(\"Hello from eval!\")))", "Hello from eval!\n")
+    result = runtest("<input>", "eval(:(print(\"Hello from eval!\")))", expect="Hello from eval!\n")
     display(result)
     #=>
     Test passed at <input>:
@@ -384,7 +454,7 @@ Functions `include` and `eval` are available in the test code.
 When the test raises an exception, the error message (but not the stack trace)
 is included with the output.
 
-    result = runtest("<input>", "sqrt(-1)\n", "ERROR: DomainError …\n …")
+    result = runtest("<input>", "sqrt(-1)\n", expect="ERROR: DomainError …\n …")
     display(result)
     #=>
     Test passed at <input>:
@@ -400,7 +470,7 @@ is included with the output.
 In the expected output, we can use symbol `…` to match any number of characters
 in a line, and symbol `⋮` to match any number of lines.
 
-    result = runtest("<input>", "print(collect('A':'Z'))\n", "['A', 'B', …, 'Z']\n")
+    result = runtest("<input>", "print(collect('A':'Z'))\n", expect="['A', 'B', …, 'Z']\n")
     display(result)
     #=>
     Test passed at <input>:
@@ -411,7 +481,9 @@ in a line, and symbol `⋮` to match any number of lines.
         ['A', 'B', 'C', …, 'Y', 'Z']
     =#
 
-    result = runtest("<input>", "display(collect('A':'Z'))\n", "26-element Array{Char,1}:\n ⋮\n")
+    result = runtest("<input>", "display(collect('A':'Z'))\n", expect="26-element Array{Char,1}:\n ⋮\n")
+
+    #? VERSION < v"1.5.0-DEV"
     display(result)
     #=>
     Test passed at <input>:
@@ -421,6 +493,25 @@ in a line, and symbol `⋮` to match any number of lines.
          ⋮
     Actual output:
         26-element Array{Char,1}:
+         'A'
+         'B'
          ⋮
+         'Z'
+    =#
+
+    #? VERSION >= v"1.5.0-DEV"
+    display(result)
+    #=>
+    Test passed at <input>:
+        display(collect('A':'Z'))
+    Expected output:
+        26-element Array{Char,1}:
+         ⋮
+    Actual output:
+        26-element Array{Char,1}:
+         'A': ASCII/Unicode U+0041 (category Lu: Letter, uppercase)
+         'B': ASCII/Unicode U+0042 (category Lu: Letter, uppercase)
+         ⋮
+         'Z': ASCII/Unicode U+005A (category Lu: Letter, uppercase)
     =#
 

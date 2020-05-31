@@ -61,6 +61,11 @@ Abbreviate the output with ellipsis:
      ⋮
      'z'
     =#
+
+Run the test conditionally:
+
+    #? Sys.WORD_SIZE == 64
+    Int             #-> Int64
 ```
 
 To suppress the printing of the value produced by the test case, end it with

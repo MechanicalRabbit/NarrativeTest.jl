@@ -1,6 +1,11 @@
 # Release Notes
 
 
+## v0.4.0
+
+- Support for precondition `#?` syntax.
+
+
 ## v0.3.0
 
 - Provide `include()` and `eval()` functions.
