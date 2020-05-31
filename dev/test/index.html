@@ -305,7 +305,7 @@ Test skipped at &lt;input&gt;:
     2+2
 Failed precondition:
     0 &gt;= 1
-=#</code></pre><p>The precondition must always produce a Boolean value.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;2+2\n&quot;, pre=&quot;1\n&quot;, expect=&quot;4\n&quot;)
+=#</code></pre><p>The precondition must always produce a Boolean value.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;2+2\n&quot;, pre=&quot;missing\n&quot;, expect=&quot;4\n&quot;)
 display(result)
 #=&gt;
 Test failed at &lt;input&gt;:
@@ -313,7 +313,7 @@ Test failed at &lt;input&gt;:
 Expected output:
     4
 Actual output:
-    ERROR: TypeError: non-boolean (Int64) used in boolean context
+    ERROR: TypeError: non-boolean (Missing) used in boolean context
 =#</code></pre><p>Functions <code>include</code> and <code>eval</code> are available in the test code.</p><pre><code class="language-julia">result = runtest(&quot;&lt;input&gt;&quot;, &quot;include(\&quot;included.jl\&quot;)&quot;, expect=&quot;Hello from included.jl!\n&quot;)
 display(result)
 #=&gt;
@@ -388,4 +388,4 @@ Actual output:
      &#39;B&#39;: ASCII/Unicode U+0042 (category Lu: Letter, uppercase)
      ⋮
      &#39;Z&#39;: ASCII/Unicode U+005A (category Lu: Letter, uppercase)
-=#</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Sunday 31 May 2020 06:05">Sunday 31 May 2020</span>. Using Julia version 1.0.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+=#</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Sunday 31 May 2020 06:18">Sunday 31 May 2020</span>. Using Julia version 1.0.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
