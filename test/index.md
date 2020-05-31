@@ -210,6 +210,7 @@ single-line and multi-line expected output.
             =#
 
             $("#?") Sys.WORD_SIZE == 64
+
             Int     $("#->") Int64
             """))
     foreach(display, suite)
