@@ -247,28 +247,33 @@ indented(text::TextBlock) =
 # Implementation of `test/runtests.jl`.
 
 """
-    runtests(files) :: Bool
+    runtests(files; subs=common_subs()) :: Bool
 
 Loads the specified Markdown files to extract and run the embedded test cases.
 When a directory is passed, loads all `*.md` files in the directory.
 Returns `true` if the testing is successful, `false` otherwise.
 
-    runtests()
+Specify `subs` to customize substitutions applied to the expected output
+in order to convert it to a regular expression.
+
+    runtests(; default=common_args(), subs=common_subs())
 
 In this form, test files are specified as command-line parameters.  When
-invoked without parameters, loads all `*.md` files in the program directory.
-Exits with code `0` if the testing is successful, `1` otherwise.  Use this form
-in `test/runtests.jl`:
+invoked without parameters, loads all `*.md` files in the program directory,
+which can be overriden using `default` parameter.  Exits with code `0` if the
+testing is successful, `1` otherwise.
+
+Use this form in `test/runtests.jl`:
 
     using NarrativeTest
     runtests()
 """
-function runtests()
-    args = !isempty(ARGS) ? ARGS : [relpath(dirname(abspath(PROGRAM_FILE)))]
-    exit(!runtests(args))
+function runtests(; default=common_args(), subs=common_subs())
+    files = !isempty(ARGS) ? ARGS : default
+    exit(!runtests(files, subs=subs))
 end
 
-function runtests(files)
+function runtests(files; subs=common_subs())
     files = vcat(findmd.(files)...)
     passed = failed = skipped = errors = 0
     for file in files
@@ -276,7 +281,7 @@ function runtests(files)
         cd(dirname(abspath(file))) do
             for test in suite
                 print(stderr, indicator(location(test)))
-                res = runtest(test)
+                res = runtest(test, subs=subs)
                 if res isa Union{Fail, Error}
                     print(stderr, CLRL)
                     print(SEPARATOR)
@@ -299,6 +304,30 @@ function runtests(files)
     println(stderr, success ? SUCCESS : FAILURE)
     return success
 end
+
+# Default parameters.
+
+"""
+    common_args() :: Vector{String}
+
+Default test files for use when the test runner has no arguments.
+"""
+common_args() =
+    [relpath(dirname(abspath(PROGRAM_FILE)))]
+
+"""
+    common_subs() :: Vector{Pair{Regex,SubstitutionString{String}}}
+
+Substitutions applied to the expected output in order to convert
+it to a regular expression.
+"""
+common_subs() = [
+    r"[^0-9A-Za-z…⋮\r\n\t ]" => s"\\\0",
+    r"[\t ]*…[\t ]*" => s".+",
+    r"[\t ]*⋮[\t ]*\r?\n?" => s"(.*(\\n|$))+",
+    r"\A" => s"\\A",
+    r"\z" => s"\\z",
+]
 
 # Find `*.md` files in the given directory.
 
@@ -479,12 +508,12 @@ end
 const MODCACHE = Dict{String,Module}()
 
 """
-    runtest(test::Test) :: AbstractResult
-    runtest(loc, code; pre=nothing, expect=nothing) :: AbstractResult
+    runtest(test::Test; subs=common_subs()) :: AbstractResult
+    runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs()) :: AbstractResult
 
 Runs the given test case, returns the result.
 """
-function runtest(test::Test)
+function runtest(test::Test; subs=common_subs())
     # Suppress printing of the output value?
     no_output = endswith(test.code.val, ";\n") || test.expect === nothing
     # Generate a module object for running the test code.
@@ -567,31 +596,24 @@ function runtest(test::Test)
     # Compare the actual output with the expected output and generate the result.
     expect = test.expect !== nothing ? rstrip(test.expect.val) : ""
     actual = rstrip(join(map(rstrip, eachline(IOBuffer(output))), "\n"))
-    return expect == actual || occursin(expect2regex(expect), actual) ?
+    return expect == actual || occursin(expect2regex(expect, subs), actual) ?
         Pass(test, actual) :
         Fail(test, actual, trace)
 end
 
-runtest(test::BrokenTest) =
+runtest(test::BrokenTest; subs=common_subs()) =
     Error(test)
 
-runtest(loc, code; pre=nothing, expect=nothing) =
+runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs()) =
     runtest(Test(loc, TextBlock(loc, code),
                       pre !== nothing ? TextBlock(loc, pre) : nothing,
-                      expect !== nothing ? TextBlock(loc, expect) : nothing))
+                      expect !== nothing ? TextBlock(loc, expect) : nothing),
+            subs=subs)
 
 # Convert expected output block to a regex.
 
-const EXPECTMAP = [
-        r"[^0-9A-Za-z…⋮\r\n\t ]" => s"\\\0",
-        r"[\t ]*…[\t ]*" => s".+",
-        r"[\t ]*⋮[\t ]*\r?\n?" => s"(.*(\\n|$))+",
-        r"\A" => s"\\A",
-        r"\z" => s"\\z",
-]
-
-function expect2regex(pattern, expectmap=EXPECTMAP)
-    for (regex, repl) in expectmap
+function expect2regex(pattern, subs)
+    for (regex, repl) in subs
         pattern = replace(pattern, regex => repl)
     end
     return Regex(pattern)
