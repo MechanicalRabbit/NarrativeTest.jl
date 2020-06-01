@@ -3,7 +3,8 @@
 
 ## v0.4.0
 
-- Support for precondition `#?` syntax.
+- Support for precondition syntax: `#? <expr>`.
+- Make default arguments and substitutions customizable.
 
 
 ## v0.3.0
