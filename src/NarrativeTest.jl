@@ -278,20 +278,18 @@ function runtests(files; subs=common_subs())
     passed = failed = skipped = errors = 0
     for file in files
         suite = parsemd(file)
-        cd(dirname(abspath(file))) do
-            for test in suite
-                print(stderr, indicator(location(test)))
-                res = runtest(test, subs=subs)
-                if res isa Union{Fail, Error}
-                    print(stderr, CLRL)
-                    print(SEPARATOR)
-                    display(res)
-                end
-                passed += res isa Pass
-                failed += res isa Fail
-                skipped += res isa Skip
-                errors += res isa Error
+        for test in suite
+            print(stderr, indicator(location(test)))
+            res = runtest(test, subs=subs)
+            if res isa Union{Fail, Error}
+                print(stderr, CLRL)
+                print(SEPARATOR)
+                display(res)
             end
+            passed += res isa Pass
+            failed += res isa Fail
+            skipped += res isa Skip
+            errors += res isa Error
         end
         print(stderr, CLRL)
     end
@@ -544,14 +542,23 @@ function runtest(test::Test; subs=common_subs())
             # Run the test code and print the result.
             stacktop = length(stacktrace())
             try
+                filename = abspath(test.loc.file)
+                curr_dir = pwd()
+                test_dir = dirname(filename)
                 tls = task_local_storage()
                 has_source_path = haskey(tls, :SOURCE_PATH)
                 source_path = get(tls, :SOURCE_PATH, nothing)
-                tls[:SOURCE_PATH] = abspath(basename(test.loc.file))
+                tls[:SOURCE_PATH] = filename
                 try
                     if test.pre !== nothing
                         pre_body = asexpr(test.pre)
-                        pre = Core.eval(mod, pre_body)
+                        pre =
+                            try
+                                cd(test_dir)
+                                Core.eval(mod, pre_body)
+                            finally
+                                cd(curr_dir)
+                            end
                         pre::Bool
                         if !pre
                             skipped = true
@@ -559,7 +566,13 @@ function runtest(test::Test; subs=common_subs())
                     end
                     if !skipped
                         body = asexpr(test.code)
-                        ans = Core.eval(mod, body)
+                        ans =
+                            try
+                                cd(test_dir)
+                                Core.eval(mod, body)
+                            finally
+                                cd(curr_dir)
+                            end
                         if ans !== nothing && !no_output
                             show(io, ans)
                         end
