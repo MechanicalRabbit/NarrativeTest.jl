@@ -36,7 +36,7 @@ end
 
 asexpr(code::TextBlock) =
     Base.parse_input_line("\n" ^ max(0, code.loc.line-1) * code.val,
-                          filename=basename(code.loc.file))
+                          filename=abspath(code.loc.file))
 
 collapse(lines::Vector{TextBlock}) =
     !isempty(lines) ? TextBlock(lines[1].loc, join([line.val for line in lines])) : nothing

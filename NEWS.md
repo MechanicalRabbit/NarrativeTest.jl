@@ -1,6 +1,11 @@
 # Release Notes
 
 
+## v0.4.1
+
+- Fixed `@Pkg.Artifacts.artifact_str` not finding `Artifacts.toml`.
+
+
 ## v0.4.0
 
 - Support for precondition syntax: `#? <expr>`.
