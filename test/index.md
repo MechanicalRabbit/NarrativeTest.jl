@@ -12,7 +12,7 @@ The main entry point of `NarrativeTest` is the function `runtests()`, which
 takes a list of Markdown files.  Each file is parsed to extract and run the
 embedded test suite.
 
-    ans = runtests(["sample_good.md_"]);
+    ans = runtests([joinpath(@__DIR__, "sample_good.md_")]);
     #=>
     Tests passed: 3
     TESTING SUCCESSFUL!
@@ -26,17 +26,17 @@ If all tests pass, `runtests()` returns `true`.
 If any of the tests fail or an ill-formed test case is detected, `runtests()`
 reports the problem and returns `false`.
 
-    ans = runtests(["sample_bad.md_"]);
+    ans = runtests([joinpath(@__DIR__, "sample_bad.md_")]);
     #=>
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Test failed at sample_bad.md_, line 9:
+    Test failed at /…/test/sample_bad.md_, line 9:
         2+2
     Expected output:
         5
     Actual output:
         4
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Test failed at sample_bad.md_, line 13:
+    Test failed at /…/test/sample_bad.md_, line 13:
         sqrt(-1)
     Expected output:
         0.0 + 1.0im
@@ -46,7 +46,7 @@ reports the problem and returns `false`.
         Stacktrace:
          ⋮
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Error at sample_bad.md_, line 17:
+    Error at /…/test/sample_bad.md_, line 17:
         missing test code
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Tests passed: 1
@@ -64,14 +64,15 @@ and, after testing is done, terminates the process with an appropriate exit
 code.
 
     julia = Base.julia_cmd()
+    pwd = @__DIR__
 
-    run(`$julia -e 'using NarrativeTest; runtests()' sample_good.md_`);
+    run(`$julia -e 'using NarrativeTest; runtests()' $pwd/sample_good.md_`);
     #=>
     ⋮
     TESTING SUCCESSFUL!
     =#
 
-    run(`$julia -e 'using NarrativeTest; runtests()' sample_bad.md_`);
+    run(`$julia -e 'using NarrativeTest; runtests()' $pwd/sample_bad.md_`);
     #=>
     ⋮
     TESTING UNSUCCESSFUL!
@@ -91,22 +92,22 @@ import the respective API.
 Function `parsemd()` parses the given Markdown file and returns an array of the
 extracted test cases.
 
-    suite = parsemd("sample_bad.md_")
+    suite = parsemd(joinpath(@__DIR__, "sample_bad.md_"))
     foreach(display, suite)
     #=>
-    Test case at sample_bad.md_, line 5:
+    Test case at /…/test/sample_bad.md_, line 5:
         (3+4)*6
     Expected output:
         42
-    Test case at sample_bad.md_, line 9:
+    Test case at /…/test/sample_bad.md_, line 9:
         2+2
     Expected output:
         5
-    Test case at sample_bad.md_, line 13:
+    Test case at /…/test/sample_bad.md_, line 13:
         sqrt(-1)
     Expected output:
         0.0 + 1.0im
-    Error at sample_bad.md_, line 17:
+    Error at /…/test/sample_bad.md_, line 17:
         missing test code
     =#
 
@@ -121,7 +122,7 @@ Function `parsemd()` recognizes two types of Markdown code blocks: indented and
 fenced.
 
     suite = parsemd(
-        "<input>",
+        @__FILE__,
         IOBuffer("""
             These test cases are embedded in an indented code block.
 
@@ -142,19 +143,19 @@ fenced.
             """))
     foreach(display, suite)
     #=>
-    Test case at <input>, line 3:
+    Test case at /…/test/index.md, line 3:
         (3+4)*6
     Expected output:
         42
-    Test case at <input>, line 6:
+    Test case at /…/test/index.md, line 6:
         2+2
     Expected output:
         5
-    Test case at <input>, line 11:
+    Test case at /…/test/index.md, line 11:
         print(2^16)
     Expected output:
         65526
-    Test case at <input>, line 14:
+    Test case at /…/test/index.md, line 14:
         sqrt(-1)
     Expected output:
         0.0 + 1.0im
@@ -163,7 +164,7 @@ fenced.
 A fenced code block with an explicit language indicator is ignored.
 
     parsemd(
-        "<input>",
+        @__FILE__,
         IOBuffer("""
             The following code will not be tested.
             ```julia
@@ -175,7 +176,7 @@ A fenced code block with an explicit language indicator is ignored.
 It is an error if a fenced code block is not closed.
 
     suite = parsemd(
-        "<input>",
+        @__FILE__,
         IOBuffer("""
             Incomplete fenced code block is an error.
             ```
@@ -184,7 +185,7 @@ It is an error if a fenced code block is not closed.
             """))
     foreach(display, suite)
     #=>
-    Error at <input>, line 2:
+    Error at /…/test/index.md, line 2:
         incomplete fenced code block
     =#
 
@@ -193,7 +194,7 @@ test cases.  It recognizes `#?` as a precondition and `#-> …` and `#=> ⋮ =#`
 single-line and multi-line expected output.
 
     suite = parsejl(
-        "<input>",
+        @__FILE__,
         IOBuffer("""
             2+2     $("#->") 4
 
@@ -215,15 +216,15 @@ single-line and multi-line expected output.
             """))
     foreach(display, suite)
     #=>
-    Test case at <input>, line 1:
+    Test case at /…/test/index.md, line 1:
         2+2
     Expected output:
         4
-    Test case at <input>, line 3:
+    Test case at /…/test/index.md, line 3:
         print(2^16)
     Expected output:
         65526
-    Test case at <input>, line 6:
+    Test case at /…/test/index.md, line 6:
         display(collect('A':'Z'))
     Expected output:
         26-element Array{Char,1}:
@@ -231,7 +232,7 @@ single-line and multi-line expected output.
          'B'
          ⋮
          'Z'
-    Test case at <input>, line 15:
+    Test case at /…/test/index.md, line 15:
         Int
     Precondition:
         Sys.WORD_SIZE == 64
@@ -242,7 +243,7 @@ single-line and multi-line expected output.
 A test case may have no expected output.
 
     suite = parsejl(
-        "<input>",
+        @__FILE__,
         IOBuffer("""
             x = pi/6
             y = sin(x)
@@ -251,7 +252,7 @@ A test case may have no expected output.
             """))
     foreach(display, suite)
     #=>
-    Test case at <input>, line 1:
+    Test case at /…/test/index.md, line 1:
         x = pi/6
         y = sin(x)
 
@@ -261,20 +262,20 @@ A test case may have no expected output.
 However, it is an error to have an expected output block without any test code.
 
     suite = parsejl(
-        "<input>",
+        @__FILE__,
         IOBuffer("""
             $("#->") 42
             """))
     foreach(display, suite)
     #=>
-    Error at <input>, line 1:
+    Error at /…/test/index.md, line 1:
         missing test code
     =#
 
 It is also an error if a multi-line output block is not closed.
 
     suite = parsejl(
-        "<input>",
+        @__FILE__,
         IOBuffer("""
             display(collect('A':'Z'))
             $("#=>")
@@ -286,7 +287,7 @@ It is also an error if a multi-line output block is not closed.
             """))
     foreach(display, suite)
     #=>
-    Error at <input>, line 2:
+    Error at /…/test/index.md, line 2:
         incomplete multiline comment block
     =#
 
@@ -300,24 +301,24 @@ We can run individual tests using the function `runtest()`.
 
 Function `runtest()` takes a test case object and returns the test result.
 
-    suite = parsemd("sample_bad.md_")
+    suite = parsemd(joinpath(@__DIR__, "sample_bad.md_"))
     suite = filter(t -> t isa NarrativeTest.Test, suite)
     results = map(runtest, suite)
     foreach(display, results)
     #=>
-    Test passed at sample_bad.md_, line 5:
+    Test passed at /…/test/sample_bad.md_, line 5:
         (3+4)*6
     Expected output:
         42
     Actual output:
         42
-    Test failed at sample_bad.md_, line 9:
+    Test failed at /…/test/sample_bad.md_, line 9:
         2+2
     Expected output:
         5
     Actual output:
         4
-    Test failed at sample_bad.md_, line 13:
+    Test failed at /…/test/sample_bad.md_, line 13:
         sqrt(-1)
     Expected output:
         0.0 + 1.0im
@@ -331,10 +332,10 @@ Function `runtest()` takes a test case object and returns the test result.
 `runtest()` captures the content of the standard output and error streams and
 matches it against the expected test result.
 
-    result = runtest("<input>", """println("Hello World!")\n""", expect="Hello World!\n")
+    result = runtest(@__FILE__, """println("Hello World!")\n""", expect="Hello World!\n")
     display(result)
     #=>
-    Test passed at <input>:
+    Test passed at /…/test/index.md:
         println("Hello World!")
     Expected output:
         Hello World!
@@ -344,10 +345,10 @@ matches it against the expected test result.
 
 `runtest()` shows the value produced by the last statement of the test code.
 
-    result = runtest("<input>", "(3+4)*6\n", expect="42\n")
+    result = runtest(@__FILE__, "(3+4)*6\n", expect="42\n")
     display(result)
     #=>
-    Test passed at <input>:
+    Test passed at /…/test/index.md:
         (3+4)*6
     Expected output:
         42
@@ -355,10 +356,10 @@ matches it against the expected test result.
         42
     =#
 
-    result = runtest("<input>", "2+2\n", expect="5\n")
+    result = runtest(@__FILE__, "2+2\n", expect="5\n")
     display(result)
     #=>
-    Test failed at <input>:
+    Test failed at /…/test/index.md:
         2+2
     Expected output:
         5
@@ -368,37 +369,37 @@ matches it against the expected test result.
 
 However, if this value is equal to `nothing`, it is not displayed.
 
-    result = runtest("<input>", "nothing\n", expect="\n")
+    result = runtest(@__FILE__, "nothing\n", expect="\n")
     display(result)
     #=>
-    Test passed at <input>:
+    Test passed at /…/test/index.md:
         ⋮
     =#
 
-This value is also concealed if the test code ends with `;` of if the test case
+This value is also concealed if the test code ends with `;` or if the test case
 has no expected output.
 
-    result = runtest("<input>", "(3+4)*6;\n", expect="\n")
+    result = runtest(@__FILE__, "(3+4)*6;\n", expect="\n")
     display(result)
     #=>
-    Test passed at <input>:
+    Test passed at /…/test/index.md:
         ⋮
     =#
 
-    result = runtest("<input>", "(3+4)*6\n", expect=nothing)
+    result = runtest(@__FILE__, "(3+4)*6\n", expect=nothing)
     display(result)
     #=>
-    Test passed at <input>:
+    Test passed at /…/test/index.md:
         ⋮
     =#
 
 A test case may include a precondition.  When the precondition is evaluated to
 `false`, the test case is skipped.
 
-    result = runtest("<input>", "2+2\n", pre="0 < 1\n", expect="4\n")
+    result = runtest(@__FILE__, "2+2\n", pre="0 < 1\n", expect="4\n")
     display(result)
     #=>
-    Test passed at <input>:
+    Test passed at /…/test/index.md:
         2+2
     Expected output:
         4
@@ -406,10 +407,10 @@ A test case may include a precondition.  When the precondition is evaluated to
         4
     =#
 
-    result = runtest("<input>", "2+2\n", pre="0 >= 1\n", expect="5\n")
+    result = runtest(@__FILE__, "2+2\n", pre="0 >= 1\n", expect="5\n")
     display(result)
     #=>
-    Test skipped at <input>:
+    Test skipped at /…/test/index.md:
         2+2
     Failed precondition:
         0 >= 1
@@ -417,10 +418,10 @@ A test case may include a precondition.  When the precondition is evaluated to
 
 The precondition must always produce a Boolean value.
 
-    result = runtest("<input>", "2+2\n", pre="missing\n", expect="4\n")
+    result = runtest(@__FILE__, "2+2\n", pre="missing\n", expect="4\n")
     display(result)
     #=>
-    Test failed at <input>:
+    Test failed at /…/test/index.md:
         2+2
     Expected output:
         4
@@ -430,10 +431,10 @@ The precondition must always produce a Boolean value.
 
 Functions `include` and `eval` are available in the test code.
 
-    result = runtest("<input>", "include(\"included.jl\")", expect="Hello from included.jl!\n")
+    result = runtest(@__FILE__, "include(\"included.jl\")", expect="Hello from included.jl!\n")
     display(result)
     #=>
-    Test passed at <input>:
+    Test passed at /…/test/index.md:
         include("included.jl")
     Expected output:
         Hello from included.jl!
@@ -441,10 +442,10 @@ Functions `include` and `eval` are available in the test code.
         Hello from included.jl!
     =#
 
-    result = runtest("<input>", "eval(:(print(\"Hello from eval!\")))", expect="Hello from eval!\n")
+    result = runtest(@__FILE__, "eval(:(print(\"Hello from eval!\")))", expect="Hello from eval!\n")
     display(result)
     #=>
-    Test passed at <input>:
+    Test passed at /…/test/index.md:
         eval(:(print("Hello from eval!")))
     Expected output:
         Hello from eval!
@@ -452,13 +453,60 @@ Functions `include` and `eval` are available in the test code.
         Hello from eval!
     =#
 
+Macros `@__MODULE__`, `@__DIR__`, `@__FILE__`, `@__LINE__` properly report the
+location of the test code.
+
+    result = runtest(@__FILE__, "println(@__MODULE__)", expect=@__FILE__)
+    display(result)
+    #=>
+    Test passed at /…/test/index.md:
+        println(@__MODULE__)
+    Expected output:
+        /…/test/index.md
+    Actual output:
+        /…/test/index.md
+    =#
+
+    result = runtest(@__FILE__, "println(@__DIR__)", expect=@__DIR__)
+    display(result)
+    #=>
+    Test passed at /…/test/index.md:
+        println(@__DIR__)
+    Expected output:
+        /…/test
+    Actual output:
+        /…/test
+    =#
+
+    result = runtest(@__FILE__, "println(@__FILE__)", expect=@__FILE__)
+    display(result)
+    #=>
+    Test passed at /…/test/index.md:
+        println(@__FILE__)
+    Expected output:
+        /…/test/index.md
+    Actual output:
+        /…/test/index.md
+    =#
+
+    result = runtest(@__FILE__, "println(@__LINE__)", expect="1")
+    display(result)
+    #=>
+    Test passed at /…/test/index.md:
+        println(@__LINE__)
+    Expected output:
+        1
+    Actual output:
+        1
+    =#
+
 When the test raises an exception, the error message (but not the stack trace)
 is included with the output.
 
-    result = runtest("<input>", "sqrt(-1)\n", expect="ERROR: DomainError …\n …")
+    result = runtest(@__FILE__, "sqrt(-1)\n", expect="ERROR: DomainError …\n …")
     display(result)
     #=>
-    Test passed at <input>:
+    Test passed at /…/test/index.md:
         sqrt(-1)
     Expected output:
         ERROR: DomainError …
@@ -471,10 +519,10 @@ is included with the output.
 In the expected output, we can use symbol `…` to match any number of characters
 in a line, and symbol `⋮` to match any number of lines.
 
-    result = runtest("<input>", "print(collect('A':'Z'))\n", expect="['A', 'B', …, 'Z']\n")
+    result = runtest(@__FILE__, "print(collect('A':'Z'))\n", expect="['A', 'B', …, 'Z']\n")
     display(result)
     #=>
-    Test passed at <input>:
+    Test passed at /…/test/index.md:
         print(collect('A':'Z'))
     Expected output:
         ['A', 'B', …, 'Z']
@@ -482,37 +530,20 @@ in a line, and symbol `⋮` to match any number of lines.
         ['A', 'B', 'C', …, 'Y', 'Z']
     =#
 
-    result = runtest("<input>", "display(collect('A':'Z'))\n", expect="26-element Array{Char,1}:\n ⋮\n")
-
-    #? VERSION < v"1.5.0-DEV"
+    result = runtest(@__FILE__, "foreach(println, 'A':'Z')\n", expect="A\nB\n⋮\nZ\n")
     display(result)
     #=>
-    Test passed at <input>:
-        display(collect('A':'Z'))
+    Test passed at /…/test/index.md:
+        foreach(println, 'A':'Z')
     Expected output:
-        26-element Array{Char,1}:
-         ⋮
+        A
+        B
+        ⋮
+        Z
     Actual output:
-        26-element Array{Char,1}:
-         'A'
-         'B'
-         ⋮
-         'Z'
-    =#
-
-    #? VERSION >= v"1.5.0-DEV"
-    display(result)
-    #=>
-    Test passed at <input>:
-        display(collect('A':'Z'))
-    Expected output:
-        26-element Array{Char,1}:
-         ⋮
-    Actual output:
-        26-element Array{Char,1}:
-         'A': ASCII/Unicode U+0041 (category Lu: Letter, uppercase)
-         'B': ASCII/Unicode U+0042 (category Lu: Letter, uppercase)
-         ⋮
-         'Z': ASCII/Unicode U+005A (category Lu: Letter, uppercase)
+        A
+        B
+        ⋮
+        Z
     =#
 

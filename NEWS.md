@@ -1,6 +1,11 @@
 # Release Notes
 
 
+## v0.5.0
+
+- Now that `@__DIR__` is provided, do not `cd()` into the test directory.
+
+
 ## v0.4.1
 
 - Fixed `@Pkg.Artifacts.artifact_str` not finding `Artifacts.toml`.

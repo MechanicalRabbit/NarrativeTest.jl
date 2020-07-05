@@ -503,8 +503,6 @@ end
 
 # Run a single test case.
 
-const MODCACHE = Dict{String,Module}()
-
 """
     runtest(test::Test; subs=common_subs()) :: AbstractResult
     runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs()) :: AbstractResult
@@ -515,13 +513,16 @@ function runtest(test::Test; subs=common_subs())
     # Suppress printing of the output value?
     no_output = endswith(test.code.val, ";\n") || test.expect === nothing
     # Generate a module object for running the test code.
-    mod = get!(MODCACHE, test.loc.file) do
-        mod = Module(Symbol(basename(test.loc.file)))
+    modid = Base.PkgId(test.loc.file)
+    if Base.root_module_exists(modid)
+        mod = Base.root_module(modid)
+    else
+        mod = Module(Symbol(test.loc.file))
         @eval mod begin
             eval(x) = Core.eval($mod, x)
             include(p) = Base.include($mod, p)
         end
-        mod
+        Base.register_root_module(mod)
     end
     # Replace the standard output/error with a pipe.
     orig_have_color = Base.have_color
@@ -543,8 +544,6 @@ function runtest(test::Test; subs=common_subs())
             stacktop = length(stacktrace())
             try
                 filename = abspath(test.loc.file)
-                curr_dir = pwd()
-                test_dir = dirname(filename)
                 tls = task_local_storage()
                 has_source_path = haskey(tls, :SOURCE_PATH)
                 source_path = get(tls, :SOURCE_PATH, nothing)
@@ -552,13 +551,7 @@ function runtest(test::Test; subs=common_subs())
                 try
                     if test.pre !== nothing
                         pre_body = asexpr(test.pre)
-                        pre =
-                            try
-                                cd(test_dir)
-                                Core.eval(mod, pre_body)
-                            finally
-                                cd(curr_dir)
-                            end
+                        pre = Core.eval(mod, pre_body)
                         pre::Bool
                         if !pre
                             skipped = true
@@ -566,13 +559,7 @@ function runtest(test::Test; subs=common_subs())
                     end
                     if !skipped
                         body = asexpr(test.code)
-                        ans =
-                            try
-                                cd(test_dir)
-                                Core.eval(mod, body)
-                            finally
-                                cd(curr_dir)
-                            end
+                        ans = Core.eval(mod, body)
                         if ans !== nothing && !no_output
                             show(io, ans)
                         end
