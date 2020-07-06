@@ -7,14 +7,14 @@ TESTING SUCCESSFUL!
 #-&gt; true</code></pre><p>If any of the tests fail or an ill-formed test case is detected, <code>runtests()</code> reports the problem and returns <code>false</code>.</p><pre><code class="language-julia">ans = runtests([joinpath(@__DIR__, &quot;sample_bad.md_&quot;)]);
 #=&gt;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Test failed at /…/test/sample_bad.md_, line 9:
+Test failed at /…/sample_bad.md_, line 9:
     2+2
 Expected output:
     5
 Actual output:
     4
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Test failed at /…/test/sample_bad.md_, line 13:
+Test failed at /…/sample_bad.md_, line 13:
     sqrt(-1)
 Expected output:
     0.0 + 1.0im
@@ -24,7 +24,7 @@ Actual output:
     Stacktrace:
      ⋮
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Error at /…/test/sample_bad.md_, line 17:
+Error at /…/sample_bad.md_, line 17:
     missing test code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Tests passed: 1
@@ -53,19 +53,19 @@ ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
     parsemd</code></pre><p>Function <code>parsemd()</code> parses the given Markdown file and returns an array of the extracted test cases.</p><pre><code class="language-julia">suite = parsemd(joinpath(@__DIR__, &quot;sample_bad.md_&quot;))
 foreach(display, suite)
 #=&gt;
-Test case at /…/test/sample_bad.md_, line 5:
+Test case at /…/sample_bad.md_, line 5:
     (3+4)*6
 Expected output:
     42
-Test case at /…/test/sample_bad.md_, line 9:
+Test case at /…/sample_bad.md_, line 9:
     2+2
 Expected output:
     5
-Test case at /…/test/sample_bad.md_, line 13:
+Test case at /…/sample_bad.md_, line 13:
     sqrt(-1)
 Expected output:
     0.0 + 1.0im
-Error at /…/test/sample_bad.md_, line 17:
+Error at /…/sample_bad.md_, line 17:
     missing test code
 =#
 
@@ -96,19 +96,19 @@ Error at sample_missing.md_:
         &quot;&quot;&quot;))
 foreach(display, suite)
 #=&gt;
-Test case at /…/test/index.md, line 3:
+Test case at /…/index.md, line 3:
     (3+4)*6
 Expected output:
     42
-Test case at /…/test/index.md, line 6:
+Test case at /…/index.md, line 6:
     2+2
 Expected output:
     5
-Test case at /…/test/index.md, line 11:
+Test case at /…/index.md, line 11:
     print(2^16)
 Expected output:
     65526
-Test case at /…/test/index.md, line 14:
+Test case at /…/index.md, line 14:
     sqrt(-1)
 Expected output:
     0.0 + 1.0im
@@ -130,7 +130,7 @@ Expected output:
         &quot;&quot;&quot;))
 foreach(display, suite)
 #=&gt;
-Error at /…/test/index.md, line 2:
+Error at /…/index.md, line 2:
     incomplete fenced code block
 =#</code></pre><p>Function <code>parsejl()</code> parses a Julia file and returns an array of the extracted test cases.  It recognizes <code>#?</code> as a precondition and <code>#-&gt; …</code> and <code>#=&gt; ⋮ =#</code> as single-line and multi-line expected output.</p><pre><code class="language-julia">suite = parsejl(
     @__FILE__,
@@ -155,15 +155,15 @@ Error at /…/test/index.md, line 2:
         &quot;&quot;&quot;))
 foreach(display, suite)
 #=&gt;
-Test case at /…/test/index.md, line 1:
+Test case at /…/index.md, line 1:
     2+2
 Expected output:
     4
-Test case at /…/test/index.md, line 3:
+Test case at /…/index.md, line 3:
     print(2^16)
 Expected output:
     65526
-Test case at /…/test/index.md, line 6:
+Test case at /…/index.md, line 6:
     display(collect(&#39;A&#39;:&#39;Z&#39;))
 Expected output:
     26-element Array{Char,1}:
@@ -171,7 +171,7 @@ Expected output:
      &#39;B&#39;
      ⋮
      &#39;Z&#39;
-Test case at /…/test/index.md, line 15:
+Test case at /…/index.md, line 15:
     Int
 Precondition:
     Sys.WORD_SIZE == 64
@@ -187,7 +187,7 @@ Expected output:
         &quot;&quot;&quot;))
 foreach(display, suite)
 #=&gt;
-Test case at /…/test/index.md, line 1:
+Test case at /…/index.md, line 1:
     x = pi/6
     y = sin(x)
 
@@ -199,7 +199,7 @@ Test case at /…/test/index.md, line 1:
         &quot;&quot;&quot;))
 foreach(display, suite)
 #=&gt;
-Error at /…/test/index.md, line 1:
+Error at /…/index.md, line 1:
     missing test code
 =#</code></pre><p>It is also an error if a multi-line output block is not closed.</p><pre><code class="language-julia">suite = parsejl(
     @__FILE__,
@@ -214,7 +214,7 @@ Error at /…/test/index.md, line 1:
         &quot;&quot;&quot;))
 foreach(display, suite)
 #=&gt;
-Error at /…/test/index.md, line 2:
+Error at /…/index.md, line 2:
     incomplete multiline comment block
 =#</code></pre><h2 id="Running-one-test"><a class="docs-heading-anchor" href="#Running-one-test">Running one test</a><a id="Running-one-test-1"></a><a class="docs-heading-anchor-permalink" href="#Running-one-test" title="Permalink"></a></h2><p>We can run individual tests using the function <code>runtest()</code>.</p><pre><code class="language-julia">using NarrativeTest:
     runtest</code></pre><p>Function <code>runtest()</code> takes a test case object and returns the test result.</p><pre><code class="language-julia">suite = parsemd(joinpath(@__DIR__, &quot;sample_bad.md_&quot;))
@@ -222,19 +222,19 @@ suite = filter(t -&gt; t isa NarrativeTest.Test, suite)
 results = map(runtest, suite)
 foreach(display, results)
 #=&gt;
-Test passed at /…/test/sample_bad.md_, line 5:
+Test passed at /…/sample_bad.md_, line 5:
     (3+4)*6
 Expected output:
     42
 Actual output:
     42
-Test failed at /…/test/sample_bad.md_, line 9:
+Test failed at /…/sample_bad.md_, line 9:
     2+2
 Expected output:
     5
 Actual output:
     4
-Test failed at /…/test/sample_bad.md_, line 13:
+Test failed at /…/sample_bad.md_, line 13:
     sqrt(-1)
 Expected output:
     0.0 + 1.0im
@@ -246,7 +246,7 @@ Actual output:
 =#</code></pre><p><code>runtest()</code> captures the content of the standard output and error streams and matches it against the expected test result.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;&quot;&quot;println(&quot;Hello World!&quot;)\n&quot;&quot;&quot;, expect=&quot;Hello World!\n&quot;)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     println(&quot;Hello World!&quot;)
 Expected output:
     Hello World!
@@ -255,7 +255,7 @@ Actual output:
 =#</code></pre><p><code>runtest()</code> shows the value produced by the last statement of the test code.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;(3+4)*6\n&quot;, expect=&quot;42\n&quot;)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     (3+4)*6
 Expected output:
     42
@@ -266,7 +266,7 @@ Actual output:
 result = runtest(@__FILE__, &quot;2+2\n&quot;, expect=&quot;5\n&quot;)
 display(result)
 #=&gt;
-Test failed at /…/test/index.md:
+Test failed at /…/index.md:
     2+2
 Expected output:
     5
@@ -275,24 +275,24 @@ Actual output:
 =#</code></pre><p>However, if this value is equal to <code>nothing</code>, it is not displayed.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;nothing\n&quot;, expect=&quot;\n&quot;)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     ⋮
 =#</code></pre><p>This value is also concealed if the test code ends with <code>;</code> or if the test case has no expected output.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;(3+4)*6;\n&quot;, expect=&quot;\n&quot;)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     ⋮
 =#
 
 result = runtest(@__FILE__, &quot;(3+4)*6\n&quot;, expect=nothing)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     ⋮
 =#</code></pre><p>A test case may include a precondition.  When the precondition is evaluated to <code>false</code>, the test case is skipped.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;2+2\n&quot;, pre=&quot;0 &lt; 1\n&quot;, expect=&quot;4\n&quot;)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     2+2
 Expected output:
     4
@@ -303,14 +303,14 @@ Actual output:
 result = runtest(@__FILE__, &quot;2+2\n&quot;, pre=&quot;0 &gt;= 1\n&quot;, expect=&quot;5\n&quot;)
 display(result)
 #=&gt;
-Test skipped at /…/test/index.md:
+Test skipped at /…/index.md:
     2+2
 Failed precondition:
     0 &gt;= 1
 =#</code></pre><p>The precondition must always produce a Boolean value.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;2+2\n&quot;, pre=&quot;missing\n&quot;, expect=&quot;4\n&quot;)
 display(result)
 #=&gt;
-Test failed at /…/test/index.md:
+Test failed at /…/index.md:
     2+2
 Expected output:
     4
@@ -319,7 +319,7 @@ Actual output:
 =#</code></pre><p>Functions <code>include</code> and <code>eval</code> are available in the test code.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;include(\&quot;included.jl\&quot;)&quot;, expect=&quot;Hello from included.jl!\n&quot;)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     include(&quot;included.jl&quot;)
 Expected output:
     Hello from included.jl!
@@ -330,7 +330,7 @@ Actual output:
 result = runtest(@__FILE__, &quot;eval(:(print(\&quot;Hello from eval!\&quot;)))&quot;, expect=&quot;Hello from eval!\n&quot;)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     eval(:(print(&quot;Hello from eval!&quot;)))
 Expected output:
     Hello from eval!
@@ -339,18 +339,18 @@ Actual output:
 =#</code></pre><p>Macros <code>@__MODULE__</code>, <code>@__DIR__</code>, <code>@__FILE__</code>, <code>@__LINE__</code> properly report the location of the test code.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;println(@__MODULE__)&quot;, expect=@__FILE__)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     println(@__MODULE__)
 Expected output:
-    /…/test/index.md
+    /…/index.md
 Actual output:
-    /…/test/index.md
+    /…/index.md
 =#
 
 result = runtest(@__FILE__, &quot;println(@__DIR__)&quot;, expect=@__DIR__)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     println(@__DIR__)
 Expected output:
     /…/test
@@ -361,18 +361,18 @@ Actual output:
 result = runtest(@__FILE__, &quot;println(@__FILE__)&quot;, expect=@__FILE__)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     println(@__FILE__)
 Expected output:
-    /…/test/index.md
+    /…/index.md
 Actual output:
-    /…/test/index.md
+    /…/index.md
 =#
 
 result = runtest(@__FILE__, &quot;println(@__LINE__)&quot;, expect=&quot;1&quot;)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     println(@__LINE__)
 Expected output:
     1
@@ -381,7 +381,7 @@ Actual output:
 =#</code></pre><p>When the test raises an exception, the error message (but not the stack trace) is included with the output.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;sqrt(-1)\n&quot;, expect=&quot;ERROR: DomainError …\n …&quot;)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     sqrt(-1)
 Expected output:
     ERROR: DomainError …
@@ -392,7 +392,7 @@ Actual output:
 =#</code></pre><p>In the expected output, we can use symbol <code>…</code> to match any number of characters in a line, and symbol <code>⋮</code> to match any number of lines.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;print(collect(&#39;A&#39;:&#39;Z&#39;))\n&quot;, expect=&quot;[&#39;A&#39;, &#39;B&#39;, …, &#39;Z&#39;]\n&quot;)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     print(collect(&#39;A&#39;:&#39;Z&#39;))
 Expected output:
     [&#39;A&#39;, &#39;B&#39;, …, &#39;Z&#39;]
@@ -403,7 +403,7 @@ Actual output:
 result = runtest(@__FILE__, &quot;foreach(println, &#39;A&#39;:&#39;Z&#39;)\n&quot;, expect=&quot;A\nB\n⋮\nZ\n&quot;)
 display(result)
 #=&gt;
-Test passed at /…/test/index.md:
+Test passed at /…/index.md:
     foreach(println, &#39;A&#39;:&#39;Z&#39;)
 Expected output:
     A
@@ -415,4 +415,4 @@ Actual output:
     B
     ⋮
     Z
-=#</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Sunday 5 July 2020 21:57">Sunday 5 July 2020</span>. Using Julia version 1.0.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+=#</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 6 July 2020 00:41">Monday 6 July 2020</span>. Using Julia version 1.0.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
