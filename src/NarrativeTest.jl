@@ -518,11 +518,11 @@ function runtest(test::Test; subs=common_subs(), mod=nothing)
     no_output = endswith(test.code.val, ";\n") || test.expect === nothing
     # Generate a module object for running the test code.
     if mod === nothing
-        modid = Base.PkgId(test.loc.file)
+        modid = Base.PkgId(module_name(test.loc.file))
         if Base.root_module_exists(modid)
             mod = Base.root_module(modid)
         else
-            mod = Module(Symbol(test.loc.file))
+            mod = Module(Symbol(modid.name))
             @eval mod begin
                 eval(x) = Core.eval($mod, x)
                 include(p) = Base.include($mod, p)
@@ -623,6 +623,13 @@ function expect2regex(pattern, subs)
         pattern = replace(pattern, regex => repl)
     end
     return Regex(pattern)
+end
+
+# Generate a module name from the filename.
+
+function module_name(file)
+    file = relpath(abspath(file), abspath(dirname(PROGRAM_FILE)))
+    return join(titlecase.(split(file, r"[^0-9A-Za-z]+")))
 end
 
 end

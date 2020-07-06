@@ -478,15 +478,15 @@ Functions `include` and `eval` are available in the test code.
 Macros `@__MODULE__`, `@__DIR__`, `@__FILE__`, `@__LINE__` properly report the
 location of the test code.
 
-    result = runtest(@__FILE__, "println(@__MODULE__)", expect=@__FILE__)
+    result = runtest(@__FILE__, "println(@__MODULE__)", expect=string(@__MODULE__))
     display(result)
     #=>
     Test passed at /…/index.md:
         println(@__MODULE__)
     Expected output:
-        /…/index.md
+        IndexMd
     Actual output:
-        /…/index.md
+        IndexMd
     =#
 
     result = runtest(@__FILE__, "println(@__DIR__)", expect=@__DIR__)
