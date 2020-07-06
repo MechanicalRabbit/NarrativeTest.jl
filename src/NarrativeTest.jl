@@ -247,7 +247,7 @@ indented(text::TextBlock) =
 # Implementation of `test/runtests.jl`.
 
 """
-    runtests(files; subs=common_subs()) :: Bool
+    runtests(files; subs=common_subs(), mod=nothing) :: Bool
 
 Loads the specified Markdown files to extract and run the embedded test cases.
 When a directory is passed, loads all `*.md` files in the directory.
@@ -256,7 +256,9 @@ Returns `true` if the testing is successful, `false` otherwise.
 Specify `subs` to customize substitutions applied to the expected output
 in order to convert it to a regular expression.
 
-    runtests(; default=common_args(), subs=common_subs())
+Specify `mod` to execute tests in the context of the given module.
+
+    runtests(; default=common_args(), subs=common_subs(), mod=nothing)
 
 In this form, test files are specified as command-line parameters.  When
 invoked without parameters, loads all `*.md` files in the program directory,
@@ -268,19 +270,19 @@ Use this form in `test/runtests.jl`:
     using NarrativeTest
     runtests()
 """
-function runtests(; default=common_args(), subs=common_subs())
+function runtests(; default=common_args(), subs=common_subs(), mod=nothing)
     files = !isempty(ARGS) ? ARGS : default
-    exit(!runtests(files, subs=subs))
+    exit(!runtests(files, subs=subs, mod=mod))
 end
 
-function runtests(files; subs=common_subs())
+function runtests(files; subs=common_subs(), mod=nothing)
     files = vcat(findmd.(files)...)
     passed = failed = skipped = errors = 0
     for file in files
         suite = parsemd(file)
         for test in suite
             print(stderr, indicator(location(test)))
-            res = runtest(test, subs=subs)
+            res = runtest(test, subs=subs, mod=mod)
             if res isa Union{Fail, Error}
                 print(stderr, CLRL)
                 print(SEPARATOR)
@@ -504,25 +506,27 @@ end
 # Run a single test case.
 
 """
-    runtest(test::Test; subs=common_subs()) :: AbstractResult
-    runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs()) :: AbstractResult
+    runtest(test::Test; subs=common_subs(), mod=nothing) :: AbstractResult
+    runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs(), mod=nothing) :: AbstractResult
 
 Runs the given test case, returns the result.
 """
-function runtest(test::Test; subs=common_subs())
+function runtest(test::Test; subs=common_subs(), mod=nothing)
     # Suppress printing of the output value?
     no_output = endswith(test.code.val, ";\n") || test.expect === nothing
     # Generate a module object for running the test code.
-    modid = Base.PkgId(test.loc.file)
-    if Base.root_module_exists(modid)
-        mod = Base.root_module(modid)
-    else
-        mod = Module(Symbol(test.loc.file))
-        @eval mod begin
-            eval(x) = Core.eval($mod, x)
-            include(p) = Base.include($mod, p)
+    if mod === nothing
+        modid = Base.PkgId(test.loc.file)
+        if Base.root_module_exists(modid)
+            mod = Base.root_module(modid)
+        else
+            mod = Module(Symbol(test.loc.file))
+            @eval mod begin
+                eval(x) = Core.eval($mod, x)
+                include(p) = Base.include($mod, p)
+            end
+            Base.register_root_module(mod)
         end
-        Base.register_root_module(mod)
     end
     # Replace the standard output/error with a pipe.
     orig_have_color = Base.have_color
@@ -601,14 +605,14 @@ function runtest(test::Test; subs=common_subs())
         Fail(test, actual, trace)
 end
 
-runtest(test::BrokenTest; subs=common_subs()) =
+runtest(test::BrokenTest; subs=common_subs(), mod=nothing) =
     Error(test)
 
-runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs()) =
+runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs(), mod=nothing) =
     runtest(Test(loc, TextBlock(loc, code),
                       pre !== nothing ? TextBlock(loc, pre) : nothing,
                       expect !== nothing ? TextBlock(loc, expect) : nothing),
-            subs=subs)
+            subs=subs, mod=mod)
 
 # Convert expected output block to a regex.
 

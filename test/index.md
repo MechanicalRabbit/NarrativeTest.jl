@@ -547,3 +547,10 @@ in a line, and symbol `⋮` to match any number of lines.
         Z
     =#
 
+A test case can be executed in the context of a specific module.
+
+    runtest(@__FILE__, "hello = \"Hello World!\"", mod=Main)
+
+    Main.hello
+    #-> "Hello World!"
+

@@ -4,6 +4,7 @@
 ## v0.5.0
 
 - Now that `@__DIR__` is provided, do not `cd()` into the test directory.
+- Allow running tests in the context of a specific module.
 
 
 ## v0.4.1
