@@ -320,7 +320,7 @@ Substitutions applied to the expected output in order to convert
 it to a regular expression.
 """
 common_subs() = [
-    r"[^0-9A-Za-z…⋮\r\n\t ]" => s"\\\0",
+    r"[\\^$.[|()?*+{]" => s"\\\0",
     r"[\t ]*…[\t ]*" => s".+",
     r"[\t ]*⋮[\t ]*\r?\n?" => s"(.*(\\n|$))+",
     r"\A" => s"\\A",
