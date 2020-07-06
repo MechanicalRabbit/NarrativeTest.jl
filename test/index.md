@@ -9,8 +9,9 @@ public API.
 ## Running the tests
 
 The main entry point of `NarrativeTest` is the function `runtests()`, which
-takes a list of Markdown files.  Each file is parsed to extract and run the
-embedded test suite.
+takes a filename or a vector of filenames.  Each filename must refer to a
+Markdown document or a directory containing `*.md` files.  The files are parsed
+to extract and run the embedded test suite.
 
     ans = runtests([joinpath(@__DIR__, "sample_good.md_")]);
     #=>
@@ -57,6 +58,27 @@ reports the problem and returns `false`.
 
     ans
     #-> false
+
+To suppress any output except for error reports, specify parameter
+`quiet=true`.
+
+    runtests(joinpath(@__DIR__, "sample_good.md_"), quiet=true)
+    #-> true
+
+    runtests(joinpath(@__DIR__, "sample_bad.md_"), quiet=true)
+    #=>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Test failed at /…/sample_bad.md_, line 9:
+    ⋮
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Test failed at /…/sample_bad.md_, line 13:
+    ⋮
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error at /…/sample_bad.md_, line 17:
+        missing test code
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    false
+    =#
 
 To implement the `runtests.jl` script, invoke `runtests()` without arguments.
 In this form, `runtests()` gets the list of files from command-line parameters

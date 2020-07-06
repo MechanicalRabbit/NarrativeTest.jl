@@ -247,7 +247,7 @@ indented(text::TextBlock) =
 # Implementation of `test/runtests.jl`.
 
 """
-    runtests(files; subs=common_subs(), mod=nothing) :: Bool
+    runtests(files; subs=common_subs(), mod=nothing, quiet=false) :: Bool
 
 Loads the specified Markdown files to extract and run the embedded test cases.
 When a directory is passed, loads all `*.md` files in the directory.
@@ -258,7 +258,9 @@ in order to convert it to a regular expression.
 
 Specify `mod` to execute tests in the context of the given module.
 
-    runtests(; default=common_args(), subs=common_subs(), mod=nothing)
+Set `quiet=true` to suppress all output except for error reports.
+
+    runtests(; default=common_args(), subs=common_subs(), mod=nothing, quiet=false)
 
 In this form, test files are specified as command-line parameters.  When
 invoked without parameters, loads all `*.md` files in the program directory,
@@ -270,21 +272,21 @@ Use this form in `test/runtests.jl`:
     using NarrativeTest
     runtests()
 """
-function runtests(; default=common_args(), subs=common_subs(), mod=nothing)
+function runtests(; default=common_args(), subs=common_subs(), mod=nothing, quiet=false)
     files = !isempty(ARGS) ? ARGS : default
-    exit(!runtests(files, subs=subs, mod=mod))
+    exit(!runtests(files, subs=subs, mod=mod, quiet=quiet))
 end
 
-function runtests(files; subs=common_subs(), mod=nothing)
+function runtests(files; subs=common_subs(), mod=nothing, quiet=false)
     files = vcat(findmd.(files)...)
     passed = failed = skipped = errors = 0
     for file in files
         suite = parsemd(file)
         for test in suite
-            print(stderr, indicator(location(test)))
+            quiet || print(stderr, indicator(location(test)))
             res = runtest(test, subs=subs, mod=mod)
             if res isa Union{Fail, Error}
-                print(stderr, CLRL)
+                quiet || print(stderr, CLRL)
                 print(SEPARATOR)
                 display(res)
             end
@@ -293,15 +295,15 @@ function runtests(files; subs=common_subs(), mod=nothing)
             skipped += res isa Skip
             errors += res isa Error
         end
-        print(stderr, CLRL)
+        quiet || print(stderr, CLRL)
     end
     summary = Summary(passed, failed, skipped, errors)
     success = failed == 0 && errors == 0
     if !success
         print(SEPARATOR)
     end
-    display(summary)
-    println(stderr, success ? SUCCESS : FAILURE)
+    quiet || display(summary)
+    quiet || println(stderr, success ? SUCCESS : FAILURE)
     return success
 end
 
