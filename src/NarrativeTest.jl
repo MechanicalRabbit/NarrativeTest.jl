@@ -273,12 +273,35 @@ Use this form in `test/runtests.jl`:
     runtests()
 """
 function runtests(; default=common_args(), subs=common_subs(), mod=nothing, quiet=false)
-    files = !isempty(ARGS) ? ARGS : default
+    program_file = !isempty(PROGRAM_FILE) ? PROGRAM_FILE : "runtests.jl"
+    files = String[]
+    for (i, arg) in enumerate(ARGS)
+        if startswith(arg, '-')
+            if arg == "--"
+                append!(files, ARGS[i+1:end])
+                break
+            elseif arg == "-h" || arg == "--help"
+                println("Usage: $program_file [-q|--quiet] [FILE]...")
+                exit(0)
+            elseif arg == "-q" || arg == "--quiet"
+                quiet = true
+            else
+                println(stderr, """$program_file: unrecognized option '$arg'
+                                   Try '$program_file --help' for more information.""")
+                exit(2)
+            end
+        else
+            push!(files, arg)
+        end
+    end
+    if isempty(files)
+        files = default
+    end
     exit(!runtests(files, subs=subs, mod=mod, quiet=quiet))
 end
 
 function runtests(files; subs=common_subs(), mod=nothing, quiet=false)
-    files = vcat(findmd.(files)...)
+    files = vcat(String[], findmd.(files)...)
     passed = failed = skipped = errors = 0
     for file in files
         suite = parsemd(file)

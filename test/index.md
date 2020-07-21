@@ -101,6 +101,37 @@ code.
     ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
     =#
 
+Invoke the script with `--help` to get a brief help on available options.
+
+    run(`$julia -e 'using NarrativeTest; runtests()' -- --help`);
+    #=>
+    Usage: runtests.jl [-q|--quiet] [FILE]...
+    =#
+
+Add `--quiet` to suppress extra output.
+
+    run(`$julia -e 'using NarrativeTest; runtests()' -- --quiet $pwd/sample_good.md_`);
+
+Use `--` to separate options from regular parameters.
+
+    run(`$julia -e 'using NarrativeTest; runtests()' -- --quiet -- --quiet`);
+    #=>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error at --quiet:
+        SystemError: opening file "--quiet": No such file or directory
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
+    =#
+
+Any other option will result in an error.
+
+    run(`$julia -e 'using NarrativeTest; runtests()' -- --error`);
+    #=>
+    runtests.jl: unrecognized option '--error'
+    Try 'runtests.jl --help' for more information.
+    ERROR: failed process: Process(` … `, ProcessExited(2)) [2]
+    =#
+
 
 ## Extracting test cases
 

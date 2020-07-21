@@ -1,6 +1,11 @@
 # Release Notes
 
 
+## v0.6.0
+
+- Added `-h/--help`, `-q/--quiet` and `--` options.
+
+
 ## v0.5.0
 
 - Now that `@__DIR__` is provided, do not `cd()` into the test directory.

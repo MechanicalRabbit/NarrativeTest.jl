@@ -1,7 +1,7 @@
 authors = ["Kirill Simonov <xi@resolvent.net>"]
 name = "NarrativeTest"
 uuid = "9563631e-acd4-5dd8-bebb-4cf36518960d"
-version = "0.5.0"
+version = "0.6.0"
 
 [deps]
 
