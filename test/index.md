@@ -118,7 +118,7 @@ Use `--` to separate options from regular parameters.
     #=>
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Error at --quiet:
-        SystemError: opening file "--quiet": No such file or directory
+        SystemError: …
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
     =#
