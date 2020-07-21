@@ -64,6 +64,21 @@ run(`$julia -e &#39;using NarrativeTest; runtests()&#39; $pwd/sample_bad.md_`);
 ⋮
 TESTING UNSUCCESSFUL!
 ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
+=#</code></pre><p>Invoke the script with <code>--help</code> to get a brief help on available options.</p><pre><code class="language-julia">run(`$julia -e &#39;using NarrativeTest; runtests()&#39; -- --help`);
+#=&gt;
+Usage: runtests.jl [-q|--quiet] [FILE]...
+=#</code></pre><p>Add <code>--quiet</code> to suppress extra output.</p><pre><code class="language-julia">run(`$julia -e &#39;using NarrativeTest; runtests()&#39; -- --quiet $pwd/sample_good.md_`);</code></pre><p>Use <code>--</code> to separate options from regular parameters.</p><pre><code class="language-julia">run(`$julia -e &#39;using NarrativeTest; runtests()&#39; -- --quiet -- --quiet`);
+#=&gt;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Error at --quiet:
+    SystemError: …
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
+=#</code></pre><p>Any other option will result in an error.</p><pre><code class="language-julia">run(`$julia -e &#39;using NarrativeTest; runtests()&#39; -- --error`);
+#=&gt;
+runtests.jl: unrecognized option &#39;--error&#39;
+Try &#39;runtests.jl --help&#39; for more information.
+ERROR: failed process: Process(` … `, ProcessExited(2)) [2]
 =#</code></pre><h2 id="Extracting-test-cases"><a class="docs-heading-anchor" href="#Extracting-test-cases">Extracting test cases</a><a id="Extracting-test-cases-1"></a><a class="docs-heading-anchor-permalink" href="#Extracting-test-cases" title="Permalink"></a></h2><p>We can extract individual test cases from Markdown and Julia files.  Let us import the respective API.</p><pre><code class="language-julia">using NarrativeTest:
     parsejl,
     parsemd</code></pre><p>Function <code>parsemd()</code> parses the given Markdown file and returns an array of the extracted test cases.</p><pre><code class="language-julia">suite = parsemd(joinpath(@__DIR__, &quot;sample_bad.md_&quot;))
@@ -434,4 +449,4 @@ Actual output:
 =#</code></pre><p>A test case can be executed in the context of a specific module.</p><pre><code class="language-julia">runtest(@__FILE__, &quot;hello = \&quot;Hello World!\&quot;&quot;, mod=Main)
 
 Main.hello
-#-&gt; &quot;Hello World!&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 6 July 2020 02:52">Monday 6 July 2020</span>. Using Julia version 1.0.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+#-&gt; &quot;Hello World!&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 21 July 2020 03:09">Tuesday 21 July 2020</span>. Using Julia version 1.0.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
