@@ -5,7 +5,8 @@ using NarrativeTest
 # Handle filesystem paths under Windows.
 subs = NarrativeTest.common_subs()
 if Sys.iswindows()
-    pushfirst!(subs, r"/…/" => s"C:\\…\\\\")
+    drive = splitdrive(pwd())[1]
+    pushfirst!(subs, r"/…/" => SubstitutionString("$drive\\\\…\\\\"))
 end
 
 runtests(subs=subs)
