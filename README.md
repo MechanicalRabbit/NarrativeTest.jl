@@ -5,8 +5,7 @@ the test suite in the narrative form.  It permits you to describe the behavior
 of software components in the Markdown format, and then extract, execute, and
 validate any embedded test code.*
 
-[![Linux/OSX Build Status][travis-img]][travis-url]
-[![Windows Build Status][appveyor-img]][appveyor-url]
+[![Build Status][ci-img]][ci-url]
 [![Code Coverage Status][codecov-img]][codecov-url]
 [![Open Issues][issues-img]][issues-url]
 [![Documentation][doc-dev-img]][doc-dev-url]
@@ -72,10 +71,8 @@ $ julia ./test/runtests.jl
 For more information, see the [**Documentation**][doc-dev-url].
 
 
-[travis-img]: https://travis-ci.org/rbt-lang/NarrativeTest.jl.svg?branch=master
-[travis-url]: https://travis-ci.org/rbt-lang/NarrativeTest.jl
-[appveyor-img]: https://ci.appveyor.com/api/projects/status/github/rbt-lang/NarrativeTest.jl?branch=master&svg=true
-[appveyor-url]: https://ci.appveyor.com/project/rbt-lang/narrativetest-jl/branch/master
+[ci-img]: https://github.com/rbt-lang/NarrativeTest.jl/workflows/CI/badge.svg
+[ci-url]: https://github.com/rbt-lang/NarrativeTest.jl/actions?query=workflow%3ACI+branch%3Amaster
 [codecov-img]: https://codecov.io/gh/rbt-lang/NarrativeTest.jl/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/rbt-lang/NarrativeTest.jl
 [issues-img]: https://img.shields.io/github/issues/rbt-lang/NarrativeTest.jl.svg
