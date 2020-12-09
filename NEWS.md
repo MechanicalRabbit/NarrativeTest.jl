@@ -4,6 +4,7 @@
 ## v0.6.0
 
 - Added `-h/--help`, `-q/--quiet` and `--` options.
+- Support test files with CRLF line endings.
 
 
 ## v0.5.0
