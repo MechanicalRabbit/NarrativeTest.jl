@@ -402,7 +402,7 @@ function loadfile(parsefile!::Function, name::String, file::Union{String,IO})
         catch exc
             return AbstractTest[BrokenTest(Location(name), exc)]
         end
-    stack = [TextBlock(Location(name, i), val+"\n") for (i, val) in enumerate(lines)]
+    stack = [TextBlock(Location(name, i), val * "\n") for (i, val) in enumerate(lines)]
     reverse!(stack)
     return parsefile!(stack)
 end
