@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Test Suite · NarrativeTest.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">NarrativeTest.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../guide/">Usage Guide</a></li><li><a class="tocitem" href="../reference/">API Reference</a></li><li class="is-active"><a class="tocitem" href>Test Suite</a><ul class="internal"><li><a class="tocitem" href="#Running-the-tests"><span>Running the tests</span></a></li><li><a class="tocitem" href="#Extracting-test-cases"><span>Extracting test cases</span></a></li><li><a class="tocitem" href="#Running-one-test"><span>Running one test</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Test Suite</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Test Suite</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/rbt-lang/NarrativeTest.jl/blob/master/test/index.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Test-Suite"><a class="docs-heading-anchor" href="#Test-Suite">Test Suite</a><a id="Test-Suite-1"></a><a class="docs-heading-anchor-permalink" href="#Test-Suite" title="Permalink"></a></h1><p>This is the test suite for NarrativeTest.jl.  We start with importing its public API.</p><pre><code class="language-julia">using NarrativeTest</code></pre><h2 id="Running-the-tests"><a class="docs-heading-anchor" href="#Running-the-tests">Running the tests</a><a id="Running-the-tests-1"></a><a class="docs-heading-anchor-permalink" href="#Running-the-tests" title="Permalink"></a></h2><p>The main entry point of <code>NarrativeTest</code> is the function <code>runtests()</code>, which takes a filename or a vector of filenames.  Each filename must refer to a Markdown document or a directory containing <code>*.md</code> files.  The files are parsed to extract and run the embedded test suite.</p><pre><code class="language-julia">ans = runtests([joinpath(@__DIR__, &quot;sample_good.md_&quot;)]);
+#=&gt;
+Tests passed: 3
+TESTING SUCCESSFUL!
+=#</code></pre><p>If all tests pass, <code>runtests()</code> returns <code>true</code>.</p><pre><code class="language-julia">ans
+#-&gt; true</code></pre><p>If any of the tests fail or an ill-formed test case is detected, <code>runtests()</code> reports the problem and returns <code>false</code>.</p><pre><code class="language-julia">ans = runtests([joinpath(@__DIR__, &quot;sample_bad.md_&quot;)]);
+#=&gt;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Test failed at /…/sample_bad.md_, line 9:
+    2+2
+Expected output:
+    5
+Actual output:
+    4
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Test failed at /…/sample_bad.md_, line 13:
+    sqrt(-1)
+Expected output:
+    0.0 + 1.0im
+Actual output:
+    ERROR: DomainError …
+    sqrt will only return a complex result if called with a complex argument. …
+    Stacktrace:
+     ⋮
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Error at /…/sample_bad.md_, line 17:
+    missing test code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Tests passed: 1
+Tests failed: 2
+Errors: 1
+TESTING UNSUCCESSFUL!
+=#
+
+ans
+#-&gt; false</code></pre><p>To suppress any output except for error reports, specify parameter <code>quiet=true</code>.</p><pre><code class="language-julia">runtests(joinpath(@__DIR__, &quot;sample_good.md_&quot;), quiet=true)
+#-&gt; true
+
+runtests(joinpath(@__DIR__, &quot;sample_bad.md_&quot;), quiet=true)
+#=&gt;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Test failed at /…/sample_bad.md_, line 9:
+⋮
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Test failed at /…/sample_bad.md_, line 13:
+⋮
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Error at /…/sample_bad.md_, line 17:
+    missing test code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+false
+=#</code></pre><p>To implement the <code>runtests.jl</code> script, invoke <code>runtests()</code> without arguments. In this form, <code>runtests()</code> gets the list of files from command-line parameters and, after testing is done, terminates the process with an appropriate exit code.</p><pre><code class="language-julia">julia = Base.julia_cmd()
+pwd = @__DIR__
+
+run(`$julia -e &#39;using NarrativeTest; runtests()&#39; $pwd/sample_good.md_`);
+#=&gt;
+⋮
+TESTING SUCCESSFUL!
+=#
+
+run(`$julia -e &#39;using NarrativeTest; runtests()&#39; $pwd/sample_bad.md_`);
+#=&gt;
+⋮
+TESTING UNSUCCESSFUL!
+ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
+=#</code></pre><p>Invoke the script with <code>--help</code> to get a brief help on available options.</p><pre><code class="language-julia">run(`$julia -e &#39;using NarrativeTest; runtests()&#39; -- --help`);
+#=&gt;
+Usage: runtests.jl [-q|--quiet] [FILE]...
+=#</code></pre><p>Add <code>--quiet</code> to suppress extra output.</p><pre><code class="language-julia">run(`$julia -e &#39;using NarrativeTest; runtests()&#39; -- --quiet $pwd/sample_good.md_`);</code></pre><p>Use <code>--</code> to separate options from regular parameters.</p><pre><code class="language-julia">run(`$julia -e &#39;using NarrativeTest; runtests()&#39; -- --quiet -- --quiet`);
+#=&gt;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Error at --quiet:
+    SystemError: …
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
+=#</code></pre><p>Any other option will result in an error.</p><pre><code class="language-julia">run(`$julia -e &#39;using NarrativeTest; runtests()&#39; -- --error`);
+#=&gt;
+runtests.jl: unrecognized option &#39;--error&#39;
+Try &#39;runtests.jl --help&#39; for more information.
+ERROR: failed process: Process(` … `, ProcessExited(2)) [2]
+=#</code></pre><h2 id="Extracting-test-cases"><a class="docs-heading-anchor" href="#Extracting-test-cases">Extracting test cases</a><a id="Extracting-test-cases-1"></a><a class="docs-heading-anchor-permalink" href="#Extracting-test-cases" title="Permalink"></a></h2><p>We can extract individual test cases from Markdown and Julia files.  Let us import the respective API.</p><pre><code class="language-julia">using NarrativeTest:
+    parsejl,
+    parsemd</code></pre><p>Function <code>parsemd()</code> parses the given Markdown file and returns an array of the extracted test cases.</p><pre><code class="language-julia">suite = parsemd(joinpath(@__DIR__, &quot;sample_bad.md_&quot;))
+foreach(display, suite)
+#=&gt;
+Test case at /…/sample_bad.md_, line 5:
+    (3+4)*6
+Expected output:
+    42
+Test case at /…/sample_bad.md_, line 9:
+    2+2
+Expected output:
+    5
+Test case at /…/sample_bad.md_, line 13:
+    sqrt(-1)
+Expected output:
+    0.0 + 1.0im
+Error at /…/sample_bad.md_, line 17:
+    missing test code
+=#
+
+suite = parsemd(&quot;sample_missing.md_&quot;)
+foreach(display, suite)
+#=&gt;
+Error at sample_missing.md_:
+    SystemError: …
+=#</code></pre><p>Function <code>parsemd()</code> recognizes two types of Markdown code blocks: indented and fenced.</p><pre><code class="language-julia">suite = parsemd(
+    @__FILE__,
+    IOBuffer(&quot;&quot;&quot;
+        These test cases are embedded in an indented code block.
+
+            (3+4)*6
+            $(&quot;#-&gt;&quot;) 42
+
+            2+2
+            $(&quot;#-&gt;&quot;) 5
+
+        The following test cases are embedded in a fenced code block.
+        ```
+        print(2^16)
+        $(&quot;#-&gt;&quot;) 65526
+
+        sqrt(-1)
+        $(&quot;#-&gt;&quot;) 0.0 + 1.0im
+        ```
+        &quot;&quot;&quot;))
+foreach(display, suite)
+#=&gt;
+Test case at /…/index.md, line 3:
+    (3+4)*6
+Expected output:
+    42
+Test case at /…/index.md, line 6:
+    2+2
+Expected output:
+    5
+Test case at /…/index.md, line 11:
+    print(2^16)
+Expected output:
+    65526
+Test case at /…/index.md, line 14:
+    sqrt(-1)
+Expected output:
+    0.0 + 1.0im
+=#</code></pre><p>A fenced code block with an explicit language indicator is ignored.</p><pre><code class="language-julia">parsemd(
+    @__FILE__,
+    IOBuffer(&quot;&quot;&quot;
+        The following code will not be tested.
+        ```julia
+        2 + 2   $(&quot;#-&gt;&quot;) 5
+        ```
+        &quot;&quot;&quot;))
+#-&gt; NarrativeTest.AbstractTest[]</code></pre><p>It is an error if a fenced code block is not closed.</p><pre><code class="language-julia">suite = parsemd(
+    @__FILE__,
+    IOBuffer(&quot;&quot;&quot;
+        Incomplete fenced code block is an error.
+        ```
+        (3+4)*6
+        $(&quot;#-&gt;&quot;) 42
+        &quot;&quot;&quot;))
+foreach(display, suite)
+#=&gt;
+Error at /…/index.md, line 2:
+    incomplete fenced code block
+=#</code></pre><p>Function <code>parsejl()</code> parses a Julia file and returns an array of the extracted test cases.  It recognizes <code>#?</code> as a precondition and <code>#-&gt; …</code> and <code>#=&gt; ⋮ =#</code> as single-line and multi-line expected output.</p><pre><code class="language-julia">suite = parsejl(
+    @__FILE__,
+    IOBuffer(&quot;&quot;&quot;
+        2+2     $(&quot;#-&gt;&quot;) 4
+
+        print(2^16)
+        $(&quot;#-&gt;&quot;) 65526
+
+        display(collect(&#39;A&#39;:&#39;Z&#39;))
+        $(&quot;#=&gt;&quot;)
+        26-element Array{Char,1}:
+         &#39;A&#39;
+         &#39;B&#39;
+         ⋮
+         &#39;Z&#39;
+        =#
+
+        $(&quot;#?&quot;) Sys.WORD_SIZE == 64
+
+        Int     $(&quot;#-&gt;&quot;) Int64
+        &quot;&quot;&quot;))
+foreach(display, suite)
+#=&gt;
+Test case at /…/index.md, line 1:
+    2+2
+Expected output:
+    4
+Test case at /…/index.md, line 3:
+    print(2^16)
+Expected output:
+    65526
+Test case at /…/index.md, line 6:
+    display(collect(&#39;A&#39;:&#39;Z&#39;))
+Expected output:
+    26-element Array{Char,1}:
+     &#39;A&#39;
+     &#39;B&#39;
+     ⋮
+     &#39;Z&#39;
+Test case at /…/index.md, line 15:
+    Int
+Precondition:
+    Sys.WORD_SIZE == 64
+Expected output:
+    Int64
+=#</code></pre><p>A test case may have no expected output.</p><pre><code class="language-julia">suite = parsejl(
+    @__FILE__,
+    IOBuffer(&quot;&quot;&quot;
+        x = pi/6
+        y = sin(x)
+
+        @assert y ≈ 0.5
+        &quot;&quot;&quot;))
+foreach(display, suite)
+#=&gt;
+Test case at /…/index.md, line 1:
+    x = pi/6
+    y = sin(x)
+
+    @assert y ≈ 0.5
+=#</code></pre><p>However, it is an error to have an expected output block without any test code.</p><pre><code class="language-julia">suite = parsejl(
+    @__FILE__,
+    IOBuffer(&quot;&quot;&quot;
+        $(&quot;#-&gt;&quot;) 42
+        &quot;&quot;&quot;))
+foreach(display, suite)
+#=&gt;
+Error at /…/index.md, line 1:
+    missing test code
+=#</code></pre><p>It is also an error if a multi-line output block is not closed.</p><pre><code class="language-julia">suite = parsejl(
+    @__FILE__,
+    IOBuffer(&quot;&quot;&quot;
+        display(collect(&#39;A&#39;:&#39;Z&#39;))
+        $(&quot;#=&gt;&quot;)
+        26-element Array{Char,1}:
+         &#39;A&#39;
+         &#39;B&#39;
+         ⋮
+         &#39;Z&#39;
+        &quot;&quot;&quot;))
+foreach(display, suite)
+#=&gt;
+Error at /…/index.md, line 2:
+    incomplete multiline comment block
+=#</code></pre><h2 id="Running-one-test"><a class="docs-heading-anchor" href="#Running-one-test">Running one test</a><a id="Running-one-test-1"></a><a class="docs-heading-anchor-permalink" href="#Running-one-test" title="Permalink"></a></h2><p>We can run individual tests using the function <code>runtest()</code>.</p><pre><code class="language-julia">using NarrativeTest:
+    runtest</code></pre><p>Function <code>runtest()</code> takes a test case object and returns the test result.</p><pre><code class="language-julia">suite = parsemd(joinpath(@__DIR__, &quot;sample_bad.md_&quot;))
+suite = filter(t -&gt; t isa NarrativeTest.Test, suite)
+results = map(runtest, suite)
+foreach(display, results)
+#=&gt;
+Test passed at /…/sample_bad.md_, line 5:
+    (3+4)*6
+Expected output:
+    42
+Actual output:
+    42
+Test failed at /…/sample_bad.md_, line 9:
+    2+2
+Expected output:
+    5
+Actual output:
+    4
+Test failed at /…/sample_bad.md_, line 13:
+    sqrt(-1)
+Expected output:
+    0.0 + 1.0im
+Actual output:
+    ERROR: DomainError …:
+    …
+    Stacktrace:
+    ⋮
+=#</code></pre><p><code>runtest()</code> captures the content of the standard output and error streams and matches it against the expected test result.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;&quot;&quot;println(&quot;Hello World!&quot;)\n&quot;&quot;&quot;, expect=&quot;Hello World!\n&quot;)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    println(&quot;Hello World!&quot;)
+Expected output:
+    Hello World!
+Actual output:
+    Hello World!
+=#</code></pre><p><code>runtest()</code> shows the value produced by the last statement of the test code.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;(3+4)*6\n&quot;, expect=&quot;42\n&quot;)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    (3+4)*6
+Expected output:
+    42
+Actual output:
+    42
+=#
+
+result = runtest(@__FILE__, &quot;2+2\n&quot;, expect=&quot;5\n&quot;)
+display(result)
+#=&gt;
+Test failed at /…/index.md:
+    2+2
+Expected output:
+    5
+Actual output:
+    4
+=#</code></pre><p>However, if this value is equal to <code>nothing</code>, it is not displayed.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;nothing\n&quot;, expect=&quot;\n&quot;)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    ⋮
+=#</code></pre><p>This value is also concealed if the test code ends with <code>;</code> or if the test case has no expected output.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;(3+4)*6;\n&quot;, expect=&quot;\n&quot;)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    ⋮
+=#
+
+result = runtest(@__FILE__, &quot;(3+4)*6\n&quot;, expect=nothing)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    ⋮
+=#</code></pre><p>A test case may include a precondition.  When the precondition is evaluated to <code>false</code>, the test case is skipped.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;2+2\n&quot;, pre=&quot;0 &lt; 1\n&quot;, expect=&quot;4\n&quot;)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    2+2
+Expected output:
+    4
+Actual output:
+    4
+=#
+
+result = runtest(@__FILE__, &quot;2+2\n&quot;, pre=&quot;0 &gt;= 1\n&quot;, expect=&quot;5\n&quot;)
+display(result)
+#=&gt;
+Test skipped at /…/index.md:
+    2+2
+Failed precondition:
+    0 &gt;= 1
+=#</code></pre><p>The precondition must always produce a Boolean value.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;2+2\n&quot;, pre=&quot;missing\n&quot;, expect=&quot;4\n&quot;)
+display(result)
+#=&gt;
+Test failed at /…/index.md:
+    2+2
+Expected output:
+    4
+Actual output:
+    ERROR: TypeError: non-boolean (Missing) used in boolean context
+=#</code></pre><p>Functions <code>include</code> and <code>eval</code> are available in the test code.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;include(\&quot;included.jl\&quot;)&quot;, expect=&quot;Hello from included.jl!\n&quot;)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    include(&quot;included.jl&quot;)
+Expected output:
+    Hello from included.jl!
+Actual output:
+    Hello from included.jl!
+=#
+
+result = runtest(@__FILE__, &quot;eval(:(print(\&quot;Hello from eval!\&quot;)))&quot;, expect=&quot;Hello from eval!\n&quot;)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    eval(:(print(&quot;Hello from eval!&quot;)))
+Expected output:
+    Hello from eval!
+Actual output:
+    Hello from eval!
+=#</code></pre><p>Macros <code>@__MODULE__</code>, <code>@__DIR__</code>, <code>@__FILE__</code>, <code>@__LINE__</code> properly report the location of the test code.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;println(@__MODULE__)&quot;, expect=string(@__MODULE__))
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    println(@__MODULE__)
+Expected output:
+    IndexMd
+Actual output:
+    IndexMd
+=#
+
+result = runtest(@__FILE__, &quot;println(@__DIR__)&quot;, expect=@__DIR__)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    println(@__DIR__)
+Expected output:
+    /…/test
+Actual output:
+    /…/test
+=#
+
+result = runtest(@__FILE__, &quot;println(@__FILE__)&quot;, expect=@__FILE__)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    println(@__FILE__)
+Expected output:
+    /…/index.md
+Actual output:
+    /…/index.md
+=#
+
+result = runtest(@__FILE__, &quot;println(@__LINE__)&quot;, expect=&quot;1&quot;)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    println(@__LINE__)
+Expected output:
+    1
+Actual output:
+    1
+=#</code></pre><p>When the test raises an exception, the error message (but not the stack trace) is included with the output.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;sqrt(-1)\n&quot;, expect=&quot;ERROR: DomainError …\n …&quot;)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    sqrt(-1)
+Expected output:
+    ERROR: DomainError …
+     …
+Actual output:
+    ERROR: DomainError …
+    sqrt will only return a complex result if called with a complex argument. …
+=#</code></pre><p>In the expected output, we can use symbol <code>…</code> to match any number of characters in a line, and symbol <code>⋮</code> to match any number of lines.</p><pre><code class="language-julia">result = runtest(@__FILE__, &quot;print(collect(&#39;A&#39;:&#39;Z&#39;))\n&quot;, expect=&quot;[&#39;A&#39;, &#39;B&#39;, …, &#39;Z&#39;]\n&quot;)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    print(collect(&#39;A&#39;:&#39;Z&#39;))
+Expected output:
+    [&#39;A&#39;, &#39;B&#39;, …, &#39;Z&#39;]
+Actual output:
+    [&#39;A&#39;, &#39;B&#39;, &#39;C&#39;, …, &#39;Y&#39;, &#39;Z&#39;]
+=#
+
+result = runtest(@__FILE__, &quot;foreach(println, &#39;A&#39;:&#39;Z&#39;)\n&quot;, expect=&quot;A\nB\n⋮\nZ\n&quot;)
+display(result)
+#=&gt;
+Test passed at /…/index.md:
+    foreach(println, &#39;A&#39;:&#39;Z&#39;)
+Expected output:
+    A
+    B
+    ⋮
+    Z
+Actual output:
+    A
+    B
+    ⋮
+    Z
+=#</code></pre><p>A test case can be executed in the context of a specific module.</p><pre><code class="language-julia">runtest(@__FILE__, &quot;hello = \&quot;Hello World!\&quot;&quot;, mod=Main)
+
+Main.hello
+#-&gt; &quot;Hello World!&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 9 December 2020 04:20">Wednesday 9 December 2020</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
