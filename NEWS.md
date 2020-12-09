@@ -1,11 +1,6 @@
 # Release Notes
 
 
-## v0.6.1
-
-- Support test files with CRLF line ending.
-
-
 ## v0.6.0
 
 - Added `-h/--help`, `-q/--quiet` and `--` options.
