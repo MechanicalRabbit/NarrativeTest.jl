@@ -11,10 +11,11 @@ julia> Pkg.add("NarrativeTest")
 ```
 
 Alternatively, you can install it from the [GitHub
-repository](https://github.com/rbt-lang/NarrativeTest.jl) using `Pkg.clone()`:
+repository](https://github.com/MechanicalRabbit/NarrativeTest.jl) using
+`Pkg.clone()`:
 
 ```julia
-julia> Pkg.clone("https://github.com/rbt-lang/NarrativeTest.jl")
+julia> Pkg.clone("https://github.com/MechanicalRabbit/NarrativeTest.jl")
 ```
 
 To use NarrativeTest for testing your package, add it as [a test-specific

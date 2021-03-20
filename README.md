@@ -71,13 +71,13 @@ $ julia ./test/runtests.jl
 For more information, see the [**Documentation**][doc-dev-url].
 
 
-[ci-img]: https://github.com/rbt-lang/NarrativeTest.jl/workflows/CI/badge.svg
-[ci-url]: https://github.com/rbt-lang/NarrativeTest.jl/actions?query=workflow%3ACI+branch%3Amaster
-[codecov-img]: https://codecov.io/gh/rbt-lang/NarrativeTest.jl/branch/master/graph/badge.svg
-[codecov-url]: https://codecov.io/gh/rbt-lang/NarrativeTest.jl
-[issues-img]: https://img.shields.io/github/issues/rbt-lang/NarrativeTest.jl.svg
-[issues-url]: https://github.com/rbt-lang/NarrativeTest.jl/issues
+[ci-img]: https://github.com/MechanicalRabbit/NarrativeTest.jl/workflows/CI/badge.svg
+[ci-url]: https://github.com/MechanicalRabbit/NarrativeTest.jl/actions?query=workflow%3ACI+branch%3Amaster
+[codecov-img]: https://codecov.io/gh/MechanicalRabbit/NarrativeTest.jl/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/MechanicalRabbit/NarrativeTest.jl
+[issues-img]: https://img.shields.io/github/issues/MechanicalRabbit/NarrativeTest.jl.svg
+[issues-url]: https://github.com/MechanicalRabbit/NarrativeTest.jl/issues
 [doc-dev-img]: https://img.shields.io/badge/doc-dev-blue.svg
-[doc-dev-url]: https://rbt-lang.github.io/NarrativeTest.jl/dev/
+[doc-dev-url]: https://mechanicalrabbit.github.io/NarrativeTest.jl/dev/
 [license-img]: https://img.shields.io/badge/license-MIT-blue.svg
-[license-url]: https://raw.githubusercontent.com/rbt-lang/NarrativeTest.jl/master/LICENSE.md
+[license-url]: https://raw.githubusercontent.com/MechanicalRabbit/NarrativeTest.jl/master/LICENSE.md

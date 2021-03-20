@@ -24,5 +24,5 @@ makedocs(
     modules = [NarrativeTest])
 
 deploydocs(
-    repo = "github.com/rbt-lang/NarrativeTest.jl.git",
+    repo = "github.com/MechanicalRabbit/NarrativeTest.jl.git",
 )
