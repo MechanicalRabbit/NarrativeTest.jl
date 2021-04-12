@@ -2,6 +2,7 @@
 
 ```@docs
 NarrativeTest.runtests
+NarrativeTest.testset
 NarrativeTest.runtest
 NarrativeTest.parsemd
 NarrativeTest.parsejl

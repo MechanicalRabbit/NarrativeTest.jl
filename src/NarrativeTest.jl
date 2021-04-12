@@ -9,6 +9,71 @@ export
 
 using Test
 
+# Public interface.
+
+"""
+    runtests(files; subs=common_subs(), mod=nothing, quiet=false) :: Bool
+
+Load the specified Markdown files to extract and run the embedded test cases.
+When a directory is passed, load all `*.md` files in the directory.  This
+function returns `true` if the testing is successful, `false` otherwise.
+
+Specify `subs` to customize substitutions applied to the expected output in
+order to convert it to a regular expression.
+
+Specify `mod` to execute tests in the context of the given module.
+
+Set `quiet=true` to suppress all output except for error reports.
+
+    runtests(; default=common_args(), subs=common_subs(), mod=nothing, quiet=false)
+
+In this form, test files are specified as command-line parameters.  When
+invoked without parameters, tests are loaded from `*.md` files in the program
+directory, which can be overriden using `default` parameter.  This function
+terminates the program with code `0` if the testing is successful, `1`
+otherwise.
+
+Use this form in `test/runtests.jl`:
+
+```julia
+using NarrativeTest
+NarrativeTest.runtests()
+```
+"""
+function runtests end
+
+"""
+    testset(files = nothing;
+            default=common_args(), subs=common_subs(), mod=nothing, quiet=false)
+
+Run NarrativeTest-based tests as a nested test set.  For example, invoke it in
+`test/runtests.jl`:
+
+```julia
+using Test, NarrativeTest
+
+@testset "MyPackage" begin
+    …
+    NarrativeTest.testset()
+    …
+end
+```
+
+The given Markdown `files` are analyized to extract and run the embedded test
+cases.  When a directory is passed, all nested `*.md` files are loaded.  When
+invoked without arguments, all `*.md` files in the program directory are
+loaded, which can be overridden using the `default` parameter.
+
+Specify `subs` to customize substitutions applied to the expected output
+in order to convert it to a regular expression.
+
+Specify `mod` to execute tests in the context of the given module.
+
+Set `quiet=true` to suppress all output except for error reports.
+
+"""
+function testset end
+
 # Position in a file.
 
 struct Location
@@ -268,32 +333,6 @@ indented(text::TextBlock) =
 
 # Implementation of `test/runtests.jl`.
 
-"""
-    runtests(files; subs=common_subs(), mod=nothing, quiet=false) :: Bool
-
-Loads the specified Markdown files to extract and run the embedded test cases.
-When a directory is passed, loads all `*.md` files in the directory.
-Returns `true` if the testing is successful, `false` otherwise.
-
-Specify `subs` to customize substitutions applied to the expected output
-in order to convert it to a regular expression.
-
-Specify `mod` to execute tests in the context of the given module.
-
-Set `quiet=true` to suppress all output except for error reports.
-
-    runtests(; default=common_args(), subs=common_subs(), mod=nothing, quiet=false)
-
-In this form, test files are specified as command-line parameters.  When
-invoked without parameters, loads all `*.md` files in the program directory,
-which can be overriden using `default` parameter.  Exits with code `0` if the
-testing is successful, `1` otherwise.
-
-Use this form in `test/runtests.jl`:
-
-    using NarrativeTest
-    runtests()
-"""
 function runtests(; default=common_args(), subs=common_subs(), mod=nothing, quiet=false)
     program_file = !isempty(PROGRAM_FILE) ? PROGRAM_FILE : "runtests.jl"
     files = String[]
@@ -439,8 +478,8 @@ end
     parsemd(file) :: Vector{AbstractTestCase}
     parsemd(name, io) :: Vector{AbstractTestCase}
 
-Parses the specified Markdown file to extract the embedded test suite.  Returns
-a list of test cases.
+Parse the specified Markdown file to extract the embedded test suite; return a
+list of test cases.
 """
 parsemd(args...) =
     loadfile(parsemd!, args...)
@@ -449,8 +488,8 @@ parsemd(args...) =
     parsejl(file) :: Vector{AbstractTestCase}
     parsejl(name, io) :: Vector{AbstractTestCase}
 
-Loads the specified Julia source file and extracts the embedded test suite.
-Returns a list of test cases.
+Load the specified Julia source file and extract the embedded test suite;
+return a list of test cases.
 """
 parsejl(args...) =
     loadfile(parsejl!, args...)
@@ -597,7 +636,7 @@ end
     runtest(test::TestCase; subs=common_subs(), mod=nothing) :: AbstractResult
     runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs(), mod=nothing) :: AbstractResult
 
-Runs the given test case, returns the result.
+Run the given test case, return the result.
 """
 function runtest(test::TestCase; subs=common_subs(), mod=nothing)
     # Suppress printing of the output value?
