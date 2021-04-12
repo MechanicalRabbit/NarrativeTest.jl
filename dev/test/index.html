@@ -151,7 +151,7 @@ Expected output:
         2 + 2   $(&quot;#-&gt;&quot;) 5
         ```
         &quot;&quot;&quot;))
-#-&gt; NarrativeTest.AbstractTest[]</code></pre><p>It is an error if a fenced code block is not closed.</p><pre><code class="language-julia">suite = parsemd(
+#-&gt; NarrativeTest.AbstractTestCase[]</code></pre><p>It is an error if a fenced code block is not closed.</p><pre><code class="language-julia">suite = parsemd(
     @__FILE__,
     IOBuffer(&quot;&quot;&quot;
         Incomplete fenced code block is an error.
@@ -249,7 +249,7 @@ Error at /…/index.md, line 2:
     incomplete multiline comment block
 =#</code></pre><h2 id="Running-one-test"><a class="docs-heading-anchor" href="#Running-one-test">Running one test</a><a id="Running-one-test-1"></a><a class="docs-heading-anchor-permalink" href="#Running-one-test" title="Permalink"></a></h2><p>We can run individual tests using the function <code>runtest()</code>.</p><pre><code class="language-julia">using NarrativeTest:
     runtest</code></pre><p>Function <code>runtest()</code> takes a test case object and returns the test result.</p><pre><code class="language-julia">suite = parsemd(joinpath(@__DIR__, &quot;sample_bad.md_&quot;))
-suite = filter(t -&gt; t isa NarrativeTest.Test, suite)
+suite = filter(t -&gt; t isa NarrativeTest.TestCase, suite)
 results = map(runtest, suite)
 foreach(display, results)
 #=&gt;
@@ -449,4 +449,4 @@ Actual output:
 =#</code></pre><p>A test case can be executed in the context of a specific module.</p><pre><code class="language-julia">runtest(@__FILE__, &quot;hello = \&quot;Hello World!\&quot;&quot;, mod=Main)
 
 Main.hello
-#-&gt; &quot;Hello World!&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 20 March 2021 16:12">Saturday 20 March 2021</span>. Using Julia version 1.5.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+#-&gt; &quot;Hello World!&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 12 April 2021 21:00">Monday 12 April 2021</span>. Using Julia version 1.6.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
