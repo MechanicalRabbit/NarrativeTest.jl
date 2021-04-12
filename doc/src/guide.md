@@ -10,14 +10,6 @@ julia> using Pkg
 julia> Pkg.add("NarrativeTest")
 ```
 
-Alternatively, you can install it from the [GitHub
-repository](https://github.com/MechanicalRabbit/NarrativeTest.jl) using
-`Pkg.clone()`:
-
-```julia
-julia> Pkg.clone("https://github.com/MechanicalRabbit/NarrativeTest.jl")
-```
-
 To use NarrativeTest for testing your package, add it as [a test-specific
 dependency](https://julialang.github.io/Pkg.jl/v1/creating-packages/#Adding-tests-to-the-package-1)
 and create the following `test/runtests.jl` script in the package directory:
