@@ -385,7 +385,11 @@ function testset(files = nothing; default=common_args(), subs=common_subs(), mod
     if ts.anynonpass
         print(SEPARATOR)
     end
-    Test.record(Test.get_testset(), ts)
+    if Test.get_testset_depth() > 0
+        Test.record(Test.get_testset(), ts)
+    elseif ts.anynonpass
+        throw(Test.TestSetException(pass, fail, error, 0, []))
+    end
     ts
 end
 
