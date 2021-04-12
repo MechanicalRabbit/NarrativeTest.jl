@@ -26,7 +26,20 @@ and create the following `test/runtests.jl` script in the package directory:
 #!/usr/bin/env julia
 
 using NarrativeTest
-runtests()
+NarrativeTest.runtests()
+```
+
+Alternatively, if you are already using the standard `Test` library in
+`test/runtests.jl`, you can run NarrativeTest-based tests as a nested test set:
+
+```julia
+using Test, NarrativeTest
+
+@testset "MyPackage" begin
+    …
+    NarrativeTest.testset()
+    …
+end
 ```
 
 
@@ -98,7 +111,7 @@ Alternatively, you can run any test suite from Julia:
 
 ```julia
 julia> using NarrativeTest
-julia> success = runtests(["path/to/test.md"]);
+julia> success = NarrativeTest.runtests(["path/to/test.md"]);
 Tests passed: 3
 TESTING SUCCESSFUL!
 julia> success

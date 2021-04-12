@@ -27,7 +27,20 @@ Then create the following `test/runtests.jl`:
 
 ```julia
 using NarrativeTest
-runtests()
+NarrativeTest.runtests()
+```
+
+If you are already relying on the standard `Test` library, you can add
+NarrativeTest as a nested test set:
+
+```julia
+using Test, NarrativeTest
+
+@testset "MyPackage" begin
+    …
+    NarrativeTest.testset()
+    …
+end
 ```
 
 Write the test suite in Markdown and save it in the `test` directory.  Place
