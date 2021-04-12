@@ -7,6 +7,8 @@ module NarrativeTest
 export
     runtests
 
+using Test
+
 # Position in a file.
 
 struct Location
@@ -27,6 +29,9 @@ end
 
 Base.show(io::IO, ::MIME"text/plain", loc::Location) = print(io, loc)
 
+Base.convert(::Type{LineNumberNode}, loc::Location) =
+    LineNumberNode(loc.line, Symbol(loc.file))
+
 # Text block with position in a file.
 
 struct TextBlock
@@ -43,18 +48,18 @@ collapse(lines::Vector{TextBlock}) =
 
 # Test case.
 
-abstract type AbstractTest end
+abstract type AbstractTestCase end
 
-struct Test <: AbstractTest
+struct TestCase <: AbstractTestCase
     loc::Location
     code::TextBlock
     pre::Union{TextBlock,Nothing}
     expect::Union{TextBlock,Nothing}
 end
 
-location(test::Test) = test.loc
+location(test::TestCase) = test.loc
 
-function Base.show(io::IO, mime::MIME"text/plain", test::Test)
+function Base.show(io::IO, mime::MIME"text/plain", test::TestCase)
     print(io, "Test case at ")
     show(io, mime, test.loc)
     println(io, ":")
@@ -69,24 +74,30 @@ function Base.show(io::IO, mime::MIME"text/plain", test::Test)
     end
 end
 
+Base.convert(::Type{LineNumberNode}, test::TestCase) =
+    convert(LineNumberNode, test.loc)
+
 # Test case that failed to parse.
 
-struct BrokenTest <: AbstractTest
+struct BrokenTestCase <: AbstractTestCase
     loc::Location
     msg::String
 end
 
-BrokenTest(loc, exc::Exception) =
-    BrokenTest(loc, sprint(showerror, exc))
+BrokenTestCase(loc, exc::Exception) =
+    BrokenTestCase(loc, sprint(showerror, exc))
 
-location(err::BrokenTest) = err.loc
+location(err::BrokenTestCase) = err.loc
 
-function Base.show(io::IO, mime::MIME"text/plain", err::BrokenTest)
+function Base.show(io::IO, mime::MIME"text/plain", err::BrokenTestCase)
     print(io, "Error at ")
     show(io, mime, err.loc)
     println(io, ":")
     println(io, indented(err.msg))
 end
+
+Base.convert(::Type{LineNumberNode}, err::BrokenTestCase) =
+    convert(LineNumberNode, err.loc)
 
 # Test result types.
 
@@ -95,7 +106,7 @@ abstract type AbstractResult end
 # Passed test.
 
 struct Pass <: AbstractResult
-    test::Test
+    test::TestCase
     output::String
 end
 
@@ -112,10 +123,13 @@ function Base.show(io::IO, mime::MIME"text/plain", pass::Pass)
     println(io, indented(pass.output))
 end
 
+Base.convert(::Type{Test.Result}, pass::Pass) =
+    Test.Pass(:test, asexpr(pass.test.code), nothing, nothing)
+
 # Failed test.
 
 struct Fail <: AbstractResult
-    test::Test
+    test::TestCase
     output::String
     trace::StackTraces.StackTrace
 end
@@ -136,10 +150,14 @@ function Base.show(io::IO, mime::MIME"text/plain", fail::Fail)
     end
 end
 
+Base.convert(::Type{Test.Result}, fail::Fail) =
+    Test.Fail(:test, asexpr(fail.test.code), nothing, false,
+              convert(LineNumberNode, fail.test))
+
 # Skipped test.
 
 struct Skip <: AbstractResult
-    test::Test
+    test::TestCase
 end
 
 function Base.show(io::IO, mime::MIME"text/plain", skip::Skip)
@@ -156,11 +174,15 @@ end
 # Ill-formed test.
 
 struct Error <: AbstractResult
-    test::BrokenTest
+    test::BrokenTestCase
 end
 
 Base.show(io::IO, mime::MIME"text/plain", error::Error) =
     show(io, mime, error.test)
+
+Base.convert(::Type{Test.Result}, error::Error) =
+    Test.Error(:test, error.test.msg, nothing, false, nothing,
+               convert(LineNumberNode, error.test))
 
 # Summary of the testing results.
 
@@ -330,6 +352,43 @@ function runtests(files; subs=common_subs(), mod=nothing, quiet=false)
     return success
 end
 
+# Compatibility with the Test package.
+
+function testset(files = nothing; default=common_args(), subs=common_subs(), mod=nothing, quiet=false)
+    files = vcat(String[], findmd.(something(files, default))...)
+    ts = Test.DefaultTestSet("NarrativeTest")
+    pass = fail = error = 0
+    for file in files
+        file_ts = Test.DefaultTestSet(file)
+        push!(ts.results, file_ts)
+        suite = parsemd(file)
+        for test in suite
+            quiet || print(stderr, indicator(location(test)))
+            res = runtest(test, subs=subs, mod=mod)
+            pass += res isa Pass
+            fail += res isa Fail
+            error += res isa Error
+            if res isa Pass
+                file_ts.n_passed += 1
+                ts.n_passed += 1
+            elseif res isa Union{Fail, Error}
+                push!(file_ts.results, convert(Test.Result, res))
+                file_ts.anynonpass = true
+                ts.anynonpass = true
+                quiet || print(stderr, CLRL)
+                print(SEPARATOR)
+                display(res)
+            end
+        end
+        quiet || print(stderr, CLRL)
+    end
+    if ts.anynonpass
+        print(SEPARATOR)
+    end
+    Test.record(Test.get_testset(), ts)
+    ts
+end
+
 # Default parameters.
 
 """
@@ -373,8 +432,8 @@ end
 # Load a file and extract the embedded tests.
 
 """
-    parsemd(file) :: Vector{AbstractTest}
-    parsemd(name, io) :: Vector{AbstractTest}
+    parsemd(file) :: Vector{AbstractTestCase}
+    parsemd(name, io) :: Vector{AbstractTestCase}
 
 Parses the specified Markdown file to extract the embedded test suite.  Returns
 a list of test cases.
@@ -383,8 +442,8 @@ parsemd(args...) =
     loadfile(parsemd!, args...)
 
 """
-    parsejl(file) :: Vector{AbstractTest}
-    parsejl(name, io) :: Vector{AbstractTest}
+    parsejl(file) :: Vector{AbstractTestCase}
+    parsejl(name, io) :: Vector{AbstractTestCase}
 
 Loads the specified Julia source file and extracts the embedded test suite.
 Returns a list of test cases.
@@ -400,7 +459,7 @@ function loadfile(parsefile!::Function, name::String, file::Union{String,IO})
         try
             readlines(file)
         catch exc
-            return AbstractTest[BrokenTest(Location(name), exc)]
+            return AbstractTestCase[BrokenTestCase(Location(name), exc)]
         end
     stack = [TextBlock(Location(name, i), val * "\n") for (i, val) in enumerate(lines)]
     reverse!(stack)
@@ -423,7 +482,7 @@ end
 
 function parsemd!(stack::Vector{TextBlock})
     # Accumulated test cases.
-    suite = AbstractTest[]
+    suite = AbstractTestCase[]
     # Extract code snippets, either indented or fenced, and pass them to `parsejl!()`.
     while !isempty(stack)
         line = pop!(stack)
@@ -436,7 +495,7 @@ function parsemd!(stack::Vector{TextBlock})
                 push!(jlstack, pop!(stack))
             end
             if isempty(stack)
-                push!(suite, BrokenTest(fenceloc, "incomplete fenced code block"))
+                push!(suite, BrokenTestCase(fenceloc, "incomplete fenced code block"))
             else
                 pop!(stack)
                 if isempty(lang)
@@ -461,7 +520,7 @@ end
 
 function parsejl!(stack::Vector{TextBlock})
     # Accumulated test cases.
-    suite = AbstractTest[]
+    suite = AbstractTestCase[]
     # Find and parse test cases.
     while !isempty(stack)
         if isblank(stack[end])
@@ -520,23 +579,23 @@ function parsecase!(stack::Vector{TextBlock})
                 line = pop!(stack)
                 push!(expect, line)
             end
-            !isempty(stack) || return BrokenTest(commentline.loc, "incomplete multiline comment block")
+            !isempty(stack) || return BrokenTestCase(commentline.loc, "incomplete multiline comment block")
             pop!(stack)
         end
     end
-    !isempty(code) || return BrokenTest(loc, "missing test code")
-    return Test(loc, collapse(code), collapse(pre), collapse(expect))
+    !isempty(code) || return BrokenTestCase(loc, "missing test code")
+    return TestCase(loc, collapse(code), collapse(pre), collapse(expect))
 end
 
 # Run a single test case.
 
 """
-    runtest(test::Test; subs=common_subs(), mod=nothing) :: AbstractResult
+    runtest(test::TestCase; subs=common_subs(), mod=nothing) :: AbstractResult
     runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs(), mod=nothing) :: AbstractResult
 
 Runs the given test case, returns the result.
 """
-function runtest(test::Test; subs=common_subs(), mod=nothing)
+function runtest(test::TestCase; subs=common_subs(), mod=nothing)
     # Suppress printing of the output value?
     no_output = endswith(test.code.val, ";\n") || test.expect === nothing
     # Generate a module object for running the test code.
@@ -630,13 +689,13 @@ function runtest(test::Test; subs=common_subs(), mod=nothing)
         Fail(test, actual, trace)
 end
 
-runtest(test::BrokenTest; subs=common_subs(), mod=nothing) =
+runtest(test::BrokenTestCase; subs=common_subs(), mod=nothing) =
     Error(test)
 
 runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs(), mod=nothing) =
-    runtest(Test(loc, TextBlock(loc, code),
-                      pre !== nothing ? TextBlock(loc, pre) : nothing,
-                      expect !== nothing ? TextBlock(loc, expect) : nothing),
+    runtest(TestCase(loc, TextBlock(loc, code),
+                     pre !== nothing ? TextBlock(loc, pre) : nothing,
+                     expect !== nothing ? TextBlock(loc, expect) : nothing),
             subs=subs, mod=mod)
 
 # Convert expected output block to a regex.

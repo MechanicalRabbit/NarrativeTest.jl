@@ -224,7 +224,7 @@ A fenced code block with an explicit language indicator is ignored.
             2 + 2   $("#->") 5
             ```
             """))
-    #-> NarrativeTest.AbstractTest[]
+    #-> NarrativeTest.AbstractTestCase[]
 
 It is an error if a fenced code block is not closed.
 
@@ -355,7 +355,7 @@ We can run individual tests using the function `runtest()`.
 Function `runtest()` takes a test case object and returns the test result.
 
     suite = parsemd(joinpath(@__DIR__, "sample_bad.md_"))
-    suite = filter(t -> t isa NarrativeTest.Test, suite)
+    suite = filter(t -> t isa NarrativeTest.TestCase, suite)
     results = map(runtest, suite)
     foreach(display, results)
     #=>
