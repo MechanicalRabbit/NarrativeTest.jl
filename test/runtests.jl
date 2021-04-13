@@ -6,7 +6,7 @@ using NarrativeTest
 subs = NarrativeTest.common_subs()
 if Sys.iswindows()
     drive = splitdrive(pwd())[1]
-    pushfirst!(subs, r"/…/" => SubstitutionString("$drive\\\\…\\\\"))
+    pushfirst!(subs, r" /?…/" => SubstitutionString(" $drive\\\\…\\\\"))
 end
 
 NarrativeTest.runtests(subs=subs)
