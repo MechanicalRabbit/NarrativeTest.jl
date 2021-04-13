@@ -86,13 +86,18 @@ Location(file::String) = Location(file, 0)
 Base.convert(::Type{Location}, file::String) = Location(file, 0)
 
 function Base.print(io::IO, loc::Location)
-    print(io, loc.file)
+    print(io, relpath(loc.file))
     if loc.line > 0
-        print(io, ", line $(loc.line)")
+        print(io, ":$(loc.line)")
     end
 end
 
-Base.show(io::IO, ::MIME"text/plain", loc::Location) = print(io, loc)
+function Base.show(io::IO, ::MIME"text/plain", loc::Location)
+    print(io, Base.contractuser(abspath(loc.file)))
+    if loc.line > 0
+        print(io, ":$(loc.line)")
+    end
+end
 
 Base.convert(::Type{LineNumberNode}, loc::Location) =
     LineNumberNode(loc.line, Symbol(loc.file))
@@ -127,7 +132,7 @@ location(test::TestCase) = test.loc
 function Base.show(io::IO, mime::MIME"text/plain", test::TestCase)
     print(io, "Test case at ")
     show(io, mime, test.loc)
-    println(io, ":")
+    println(io)
     println(io, indented(test.code))
     if test.pre !== nothing
         println(io, "Precondition:")
@@ -157,7 +162,7 @@ location(err::BrokenTestCase) = err.loc
 function Base.show(io::IO, mime::MIME"text/plain", err::BrokenTestCase)
     print(io, "Error at ")
     show(io, mime, err.loc)
-    println(io, ":")
+    println(io)
     println(io, indented(err.msg))
 end
 
@@ -178,7 +183,7 @@ end
 function Base.show(io::IO, mime::MIME"text/plain", pass::Pass)
     print(io, "Test passed at ")
     show(io, mime, pass.test.loc)
-    println(io, ":")
+    println(io)
     println(io, indented(pass.test.code))
     println(io, "Expected output:")
     if pass.test.expect !== nothing
@@ -202,7 +207,7 @@ end
 function Base.show(io::IO, mime::MIME"text/plain", fail::Fail)
     print(io, "Test failed at ")
     show(io, mime, fail.test.loc)
-    println(io, ":")
+    println(io)
     println(io, indented(fail.test.code))
     println(io, "Expected output:")
     if fail.test.expect !== nothing
@@ -228,7 +233,7 @@ end
 function Base.show(io::IO, mime::MIME"text/plain", skip::Skip)
     print(io, "Test skipped at ")
     show(io, mime, skip.test.loc)
-    println(io, ":")
+    println(io)
     println(io, indented(skip.test.code))
     println(io, "Failed precondition:")
     if skip.test.pre !== nothing

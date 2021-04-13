@@ -9,4 +9,4 @@ if Sys.iswindows()
     pushfirst!(subs, r"/…/" => SubstitutionString("$drive\\\\…\\\\"))
 end
 
-runtests(subs=subs)
+NarrativeTest.runtests(subs=subs)
