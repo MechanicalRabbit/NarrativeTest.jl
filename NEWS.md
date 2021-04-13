@@ -1,6 +1,11 @@
 # Release Notes
 
 
+## v0.7.0
+
+- Compatibility with the standard `Test` library.
+
+
 ## v0.6.0
 
 - Added `-h/--help`, `-q/--quiet` and `--` options.
