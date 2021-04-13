@@ -403,7 +403,7 @@ function testset(files = nothing; default=common_args(), subs=common_subs(), mod
     ts = Test.DefaultTestSet("NarrativeTest")
     pass = fail = error = 0
     for file in files
-        file_ts = Test.DefaultTestSet(file)
+        file_ts = Test.DefaultTestSet(relpath(file))
         push!(ts.results, file_ts)
         suite = parsemd(file)
         for test in suite
