@@ -1,6 +1,11 @@
 # Release Notes
 
 
+## v0.7.1
+
+- Use relative paths in Test Summary.
+
+
 ## v0.7.0
 
 - Compatibility with the standard `Test` library.
