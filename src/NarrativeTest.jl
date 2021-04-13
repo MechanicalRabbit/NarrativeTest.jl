@@ -246,7 +246,7 @@ Base.show(io::IO, mime::MIME"text/plain", error::Error) =
     show(io, mime, error.test)
 
 Base.convert(::Type{Test.Result}, error::Error) =
-    Test.Error(:test, error.test.msg, nothing, false, nothing,
+    Test.Error(:test, error.test.msg, nothing, false,
                convert(LineNumberNode, error.test))
 
 # Summary of the testing results.
@@ -409,7 +409,6 @@ function testset(files = nothing; default=common_args(), subs=common_subs(), mod
             error += res isa Error
             if res isa Pass
                 file_ts.n_passed += 1
-                ts.n_passed += 1
             elseif res isa Union{Fail, Error}
                 push!(file_ts.results, convert(Test.Result, res))
                 file_ts.anynonpass = true

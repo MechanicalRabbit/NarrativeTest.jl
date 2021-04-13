@@ -8,10 +8,10 @@ public API.
 
 ## Running the tests
 
-The main entry point of `NarrativeTest` is the function `runtests()`, which
-takes a filename or a vector of filenames.  Each filename must refer to a
-Markdown document or a directory containing `*.md` files.  The files are parsed
-to extract and run the embedded test suite.
+The main entry point of NarrativeTest is the function `runtests()`, which takes
+a filename or a vector of filenames.  Each filename must refer to a Markdown
+document or a directory containing `*.md` files.  The files are parsed to
+extract and run the embedded test suite.
 
     ans = runtests([joinpath(@__DIR__, "sample_good.md_")]);
     #=>
@@ -130,6 +130,34 @@ Any other option will result in an error.
     runtests.jl: unrecognized option '--error'
     Try 'runtests.jl --help' for more information.
     ERROR: failed process: Process(` … `, ProcessExited(2)) [2]
+    =#
+
+
+## Using with `Test` library
+
+Function `testset()` makes NarrativeTest compatible with the standard Test
+library.
+
+    using Test
+
+    NarrativeTest.testset([joinpath(@__DIR__, "sample_good.md_"),
+                           joinpath(@__DIR__, "sample_bad.md_")])
+    #=>
+    ⋮
+    ERROR: Some tests did not pass: 4 passed, 2 failed, 1 errored, 0 broken.
+    =#
+
+Normally, it should be invoked from a test set.
+
+    @testset begin
+        @test true == false
+        NarrativeTest.testset([joinpath(@__DIR__, "sample_good.md_"),
+                               joinpath(@__DIR__, "sample_bad.md_")])
+        @test 2 + 2 == 5
+    end
+    #=>
+    ⋮
+    ERROR: Some tests did not pass: 4 passed, 4 failed, 1 errored, 0 broken.
     =#
 
 
