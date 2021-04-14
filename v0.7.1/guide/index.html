@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Usage Guide · NarrativeTest.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">NarrativeTest.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Usage Guide</a><ul class="internal"><li><a class="tocitem" href="#Installation"><span>Installation</span></a></li><li><a class="tocitem" href="#Creating-tests"><span>Creating tests</span></a></li><li><a class="tocitem" href="#Running-the-tests"><span>Running the tests</span></a></li></ul></li><li><a class="tocitem" href="../reference/">API Reference</a></li><li><a class="tocitem" href="../test/">Test Suite</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Usage Guide</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Usage Guide</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/MechanicalRabbit/NarrativeTest.jl/blob/master/doc/src/guide.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Usage-Guide"><a class="docs-heading-anchor" href="#Usage-Guide">Usage Guide</a><a id="Usage-Guide-1"></a><a class="docs-heading-anchor-permalink" href="#Usage-Guide" title="Permalink"></a></h1><h2 id="Installation"><a class="docs-heading-anchor" href="#Installation">Installation</a><a id="Installation-1"></a><a class="docs-heading-anchor-permalink" href="#Installation" title="Permalink"></a></h2><p>You can install NarrativeTest using the Julia package manager:</p><pre><code class="language-julia">julia&gt; using Pkg
+julia&gt; Pkg.add(&quot;NarrativeTest&quot;)</code></pre><p>To use NarrativeTest for testing your package, add it as <a href="https://julialang.github.io/Pkg.jl/v1/creating-packages/#Adding-tests-to-the-package-1">a test-specific dependency</a> and create the following <code>test/runtests.jl</code> script in the package directory:</p><pre><code class="language-julia">#!/usr/bin/env julia
+
+using NarrativeTest
+NarrativeTest.runtests()</code></pre><p>Alternatively, if you are already using the standard <code>Test</code> library in <code>test/runtests.jl</code>, you can run NarrativeTest-based tests as a nested test set:</p><pre><code class="language-julia">using Test, NarrativeTest
+
+@testset &quot;MyPackage&quot; begin
+    …
+    NarrativeTest.testset()
+    …
+end</code></pre><h2 id="Creating-tests"><a class="docs-heading-anchor" href="#Creating-tests">Creating tests</a><a id="Creating-tests-1"></a><a class="docs-heading-anchor-permalink" href="#Creating-tests" title="Permalink"></a></h2><p>Write the test suite as a Markdown document and save it in the <code>test</code> directory.  Place the test cases in Markdown code blocks, and use comments <code>#-&gt; …</code> and <code>#=&gt; … =#</code> to indicate the expected output.  For example:</p><pre><code class="language-markdown"># Sample test suite
+
+Verify that the expression evaluates to the expected value:
+
+    6(3+4)          #-&gt; 42
+
+Check if the code produces the expected output:
+
+    print(&quot;Hello &quot;)
+    print(&quot;World!&quot;)
+    #-&gt; Hello World!
+
+Abbreviate the output with ellipsis:
+
+    collect(&#39;a&#39;:&#39;z&#39;)
+    #-&gt; [&#39;a&#39;, &#39;b&#39;, …, &#39;z&#39;]
+
+    display(collect(&#39;a&#39;:&#39;z&#39;))
+    #=&gt;
+    26-element Array{Char,1}:
+     &#39;a&#39;
+     &#39;b&#39;
+     ⋮
+     &#39;z&#39;
+    =#
+
+Run the test conditionally:
+
+    #? Sys.WORD_SIZE == 64
+    Int             #-&gt; Int64</code></pre><p>To suppress the printing of the value produced by the test case, end it with <code>;</code>.</p><p>In the output block, you can use the symbol <code>…</code> (<code>\dots</code>) to match an arbitrary sequence of characters in the line, and <code>⋮</code> (<code>\vdots</code>) to match any number of lines.</p><h2 id="Running-the-tests"><a class="docs-heading-anchor" href="#Running-the-tests">Running the tests</a><a id="Running-the-tests-1"></a><a class="docs-heading-anchor-permalink" href="#Running-the-tests" title="Permalink"></a></h2><p>To run all test suites in the <code>test</code> directory, start:</p><pre><code class="language-console">$ julia ./test/runtests.jl
+Tests passed: 3
+TESTING SUCCESSFUL!</code></pre><p>You can also run individual test suites by listing them as command-line parameters:</p><pre><code class="language-console">$ julia ./test/runtests.jl path/to/test.md</code></pre><p>Alternatively, you can run any test suite from Julia:</p><pre><code class="language-julia">julia&gt; using NarrativeTest
+julia&gt; success = NarrativeTest.runtests([&quot;path/to/test.md&quot;]);
+Tests passed: 3
+TESTING SUCCESSFUL!
+julia&gt; success
+true</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../reference/">API Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 14 April 2021 00:42">Wednesday 14 April 2021</span>. Using Julia version 1.6.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
