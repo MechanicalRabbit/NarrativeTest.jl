@@ -696,13 +696,13 @@ function runtest(test::TestCase; subs=common_subs(), mod=nothing)
                         body = asexpr(test.code)
                         ans = Core.eval(mod, body)
                         if ans !== nothing && !no_output
-                            show(io, ans)
+                            Base.invokelatest(show, io, ans)
                         end
                     end
                 catch exc
                     trace = stacktrace(catch_backtrace())[1:end-stacktop]
                     print(stderr, "ERROR: ")
-                    showerror(stderr, exc, trace; backtrace=false)
+                    Base.invokelatest(showerror, stderr, exc, trace; backtrace=false)
                 end
                 println(io)
                 if has_source_path
