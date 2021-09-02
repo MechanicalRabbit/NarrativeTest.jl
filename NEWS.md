@@ -1,6 +1,12 @@
 # Release Notes
 
 
+## v0.7.2
+
+* Fixed the problem when `show` defined in a test case is not applied to
+  display the output of this test case.  Thanks to vtjnash.
+
+
 ## v0.7.1
 
 - Use relative paths in Test Summary.
