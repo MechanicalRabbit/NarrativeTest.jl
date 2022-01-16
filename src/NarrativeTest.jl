@@ -377,7 +377,7 @@ function runtests(files; subs=common_subs(), mod=nothing, quiet=false)
             if res isa Union{Fail, Error}
                 quiet || print(stderr, CLRL)
                 print(SEPARATOR)
-                display(res)
+                show(stdout, MIME"text/plain"(), res)
             end
             passed += res isa Pass
             failed += res isa Fail
@@ -391,7 +391,7 @@ function runtests(files; subs=common_subs(), mod=nothing, quiet=false)
     if !success
         print(SEPARATOR)
     end
-    quiet || display(summary)
+    quiet || show(stdout, MIME"text/plain"(), summary)
     quiet || println(stderr, success ? SUCCESS : FAILURE)
     return success
 end
@@ -420,7 +420,7 @@ function testset(files = nothing; default=common_args(), subs=common_subs(), mod
                 ts.anynonpass = true
                 quiet || print(stderr, CLRL)
                 print(SEPARATOR)
-                display(res)
+                show(stdout, MIME"text/plain"(), res)
             end
         end
         quiet || print(stderr, CLRL)
