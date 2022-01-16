@@ -521,6 +521,8 @@ isfence(line) =
     startswith(line.val, "```") || startswith(line.val, "~~~")
 isindent(line) =
     startswith(line.val, " "^4)
+isadmonition(line) =
+    startswith(line.val, "!!!")
 
 function unindent(line)
     val = line.val[5:end]
@@ -558,6 +560,11 @@ function parsemd!(stack::Vector{TextBlock})
             end
             reverse!(jlstack)
             append!(suite, parsejl!(jlstack))
+        elseif isadmonition(line)
+            # Skip an indented admonition block.
+            while !isempty(stack) && (isindent(stack[end]) || isblank(stack[end]))
+                pop!(stack)
+            end
         end
     end
     return suite

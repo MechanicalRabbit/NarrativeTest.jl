@@ -254,6 +254,18 @@ A fenced code block with an explicit language indicator is ignored.
             """))
     #-> NarrativeTest.AbstractTestCase[]
 
+An indented admonition block will be ignored.
+
+    parsemd(
+        @__FILE__,
+        IOBuffer("""
+            !!! warning
+
+                This is an admonition block,
+                not a Julia code.
+            """))
+    #-> NarrativeTest.AbstractTestCase[]
+
 It is an error if a fenced code block is not closed.
 
     suite = parsemd(
