@@ -1,6 +1,13 @@
 # Release Notes
 
 
+## v0.7.3
+
+* Require Julia ≥ 1.6.
+* Detect and ignore admonition blocks.
+* Workaround for https://github.com/JuliaLang/julia/pull/43787.
+
+
 ## v0.7.2
 
 * Fixed the problem when `show` defined in a test case is not applied to
