@@ -167,6 +167,14 @@ Expected output:
         2 + 2   $(&quot;#-&gt;&quot;) 5
         ```
         &quot;&quot;&quot;))
+#-&gt; NarrativeTest.AbstractTestCase[]</code></pre><p>An indented admonition block will be ignored.</p><pre><code class="language-julia hljs">parsemd(
+    @__FILE__,
+    IOBuffer(&quot;&quot;&quot;
+        !!! warning
+
+            This is an admonition block,
+            not a Julia code.
+        &quot;&quot;&quot;))
 #-&gt; NarrativeTest.AbstractTestCase[]</code></pre><p>It is an error if a fenced code block is not closed.</p><pre><code class="language-julia hljs">suite = parsemd(
     @__FILE__,
     IOBuffer(&quot;&quot;&quot;
@@ -465,4 +473,4 @@ Actual output:
 =#</code></pre><p>A test case can be executed in the context of a specific module.</p><pre><code class="language-julia hljs">runtest(@__FILE__, &quot;hello = \&quot;Hello World!\&quot;&quot;, mod=Main)
 
 Main.hello
-#-&gt; &quot;Hello World!&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.11 on <span class="colophon-date" title="Sunday 16 January 2022 15:29">Sunday 16 January 2022</span>. Using Julia version 1.7.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+#-&gt; &quot;Hello World!&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.11 on <span class="colophon-date" title="Sunday 16 January 2022 15:37">Sunday 16 January 2022</span>. Using Julia version 1.7.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
