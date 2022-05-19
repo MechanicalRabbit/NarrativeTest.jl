@@ -15,7 +15,7 @@ extract and run the embedded test suite.
 
     ans = runtests([joinpath(@__DIR__, "sample_good.md_")]);
     #=>
-    Tests passed: 3
+    Tests passed: 4
     TESTING SUCCESSFUL!
     =#
 
@@ -50,9 +50,19 @@ reports the problem and returns `false`.
     Error at …/sample_bad.md_:17
         missing test code
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Test failed at …/sample_bad.md_:21
+        42
+    Expected output:
+        43
+    Actual output:
+        42
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error at …/sample_bad.md_:26
+        missing test code
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Tests passed: 1
-    Tests failed: 2
-    Errors: 1
+    Tests failed: 3
+    Errors: 2
     TESTING UNSUCCESSFUL!
     =#
 
@@ -75,6 +85,16 @@ To suppress any output except for error reports, specify parameter
     ⋮
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Error at …/sample_bad.md_:17
+        missing test code
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Test failed at …/sample_bad.md_:21
+        42
+    Expected output:
+        43
+    Actual output:
+        42
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error at …/sample_bad.md_:26
         missing test code
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     false
@@ -144,7 +164,7 @@ library.
                            joinpath(@__DIR__, "sample_bad.md_")])
     #=>
     ⋮
-    ERROR: Some tests did not pass: 4 passed, 2 failed, 1 errored, 0 broken.
+    ERROR: Some tests did not pass: 5 passed, 3 failed, 2 errored, 0 broken.
     =#
 
 Normally, it should be invoked from a test set.
@@ -157,7 +177,7 @@ Normally, it should be invoked from a test set.
     end
     #=>
     ⋮
-    ERROR: Some tests did not pass: 4 passed, 4 failed, 1 errored, 0 broken.
+    ERROR: Some tests did not pass: 5 passed, 5 failed, 2 errored, 0 broken.
     =#
 
 
@@ -189,6 +209,12 @@ extracted test cases.
     Expected output:
         0.0 + 1.0im
     Error at …/sample_bad.md_:17
+        missing test code
+    Test case at …/sample_bad.md_:21
+        42
+    Expected output:
+        43
+    Error at …/sample_bad.md_:26
         missing test code
     =#
 
@@ -384,6 +410,190 @@ It is also an error if a multi-line output block is not closed.
         incomplete multiline comment block
     =#
 
+It is possible to define tests using syntax simulating REPL session (in fact
+REPL session can be copy pasted as-is to become test cases), just prefix a line
+in a code block with `julia> `:
+
+    suite = parsemd(
+        @__FILE__,
+        IOBuffer("""
+            These test cases are embedded in an indented code block.
+
+                julia> (3+4)*6
+                42
+
+                julia> 2+2
+                5
+
+            The following test cases are embedded in a fenced code block.
+            ```
+            julia> print(2^16)
+            65526
+
+            julia> sqrt(-1)
+            0.0 + 1.0im
+            ```
+            """))
+    foreach(display, suite)
+    #=>
+    Test case at …/index.md:3
+        (3+4)*6
+    Expected output:
+        42
+    Test case at …/index.md:6
+        2+2
+    Expected output:
+        5
+    Test case at …/index.md:11
+        print(2^16)
+    Expected output:
+        65526
+    Test case at …/index.md:14
+        sqrt(-1)
+    Expected output:
+        0.0 + 1.0im
+    =#
+
+Expected output can be missing:
+
+    suite = parsemd(
+        @__FILE__,
+        IOBuffer("""
+            The indented code block below is missing few expected outputs:
+
+                julia> 1
+
+                julia> 2
+                2
+
+                julia> 3
+
+            Now fenced code block with missing few expected outputs:
+
+            ```
+            julia> 1
+
+            julia> 2
+            2
+
+            julia> 3
+            ```
+            """))
+    foreach(display, suite)
+    #=>
+    Test case at …/index.md:3
+        1
+    Expected output:
+
+    Test case at …/index.md:5
+        2
+    Expected output:
+        2
+    Test case at …/index.md:8
+        3
+    Expected output:
+
+    Test case at …/index.md:13
+        1
+    Expected output:
+
+    Test case at …/index.md:15
+        2
+    Expected output:
+        2
+    Test case at …/index.md:18
+        3
+    Expected output:
+
+    =#
+
+REPL-like test cases can span multiple lines as in real REPL if we keep
+indentation:
+
+    suite = parsemd(
+        @__FILE__,
+        IOBuffer("""
+            Multiline code blocks:
+
+                julia> [1 2;
+                        3 4]
+                2×2 Matrix{Int64}:
+                 1  2
+                 3  4
+
+                julia> 1
+                       2
+                2
+
+                julia> "no
+                        output?"
+
+            """))
+    foreach(display, suite)
+    #=>
+    Test case at …/index.md:3
+        [1 2;
+         3 4]
+    Expected output:
+        2×2 Matrix{Int64}:
+         1  2
+         3  4
+    Test case at …/index.md:9
+        1
+        2
+    Expected output:
+        2
+    Test case at …/index.md:13
+        "no
+         output?"
+    Expected output:
+    =#
+
+Empty prompt with REPL-like test cases is considered as invalid:
+
+    suite = parsemd(
+        @__FILE__,
+        IOBuffer("""
+            Some test cases are invalid below as they are missing code
+            to execute:
+
+                julia> 1
+
+                julia>
+
+                julia> 3
+                3
+
+                julia> 4;
+                julia> 5
+                5
+
+                julia>
+
+            """))
+    foreach(display, suite)
+    #=>
+    Test case at …/index.md:4
+        1
+    Expected output:
+
+    Error at …/index.md:6
+        missing test code
+    Test case at …/index.md:8
+        3
+    Expected output:
+        3
+    Test case at …/index.md:11
+        4;
+    Expected output:
+
+    Test case at …/index.md:12
+        5
+    Expected output:
+        5
+    Error at …/index.md:15
+        missing test code
+    =#
 
 ## Running one test
 

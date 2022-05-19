@@ -11,3 +11,8 @@ We could also check if some code produces expected output:
 We could use ellipsis to match a sequence of characters:
 
     collect(1:10)   #-> [1, 2, …, 10]
+
+We could use specify tests using syntax simulating REPL session:
+
+    julia> (3+4)*6
+    42

@@ -125,6 +125,7 @@ struct TestCase <: AbstractTestCase
     code::TextBlock
     pre::Union{TextBlock,Nothing}
     expect::Union{TextBlock,Nothing}
+    repl::Bool
 end
 
 location(test::TestCase) = test.loc
@@ -537,11 +538,14 @@ function parsemd!(stack::Vector{TextBlock})
         line = pop!(stack)
         if isfence(line)
             # Extract a fenced block.
+            isrepl = false
             fenceloc = line.loc
             lang = strip(line.val[4:end])
             jlstack = TextBlock[]
             while !isempty(stack) && !isfence(stack[end])
-                push!(jlstack, pop!(stack))
+                block = pop!(stack)
+                isrepl = isrepl || startswith(block.val, "julia>")
+                push!(jlstack, block)
             end
             if isempty(stack)
                 push!(suite, BrokenTestCase(fenceloc, "incomplete fenced code block"))
@@ -549,17 +553,21 @@ function parsemd!(stack::Vector{TextBlock})
                 pop!(stack)
                 if isempty(lang)
                     reverse!(jlstack)
-                    append!(suite, parsejl!(jlstack))
+                    append!(suite, isrepl ? parsejlrepl!(jlstack) : parsejl!(jlstack))
                 end
             end
         elseif isindent(line) && !isblank(line)
             # Extract an indented block.
-            jlstack = TextBlock[unindent(line)]
+            block = unindent(line)
+            isrepl = startswith(block.val, "julia>")
+            jlstack = TextBlock[block]
             while !isempty(stack) && (isindent(stack[end]) || isblank(stack[end]))
-                push!(jlstack, unindent(pop!(stack)))
+                block = unindent(pop!(stack))
+                isrepl = isrepl || startswith(block.val, "julia>")
+                push!(jlstack, block)
             end
             reverse!(jlstack)
-            append!(suite, parsejl!(jlstack))
+            append!(suite, isrepl ? parsejlrepl!(jlstack) : parsejl!(jlstack))
         elseif isadmonition(line)
             # Skip an indented admonition block.
             while !isempty(stack) && (isindent(stack[end]) || isblank(stack[end]))
@@ -586,6 +594,54 @@ function parsejl!(stack::Vector{TextBlock})
         end
     end
     return suite
+end
+
+const PROMPT_REGEX = r"^julia>(?: (.*))?$"
+const SOURCE_REGEX = r"^       (.*)$"
+
+function parsejlrepl!(stack::Vector{TextBlock})
+    reverse!(stack)
+    suite = AbstractTestCase[]
+    code, buf = nothing, IOBuffer()
+    function addcase!(expect)
+        case = !isempty(code.val) ?
+            TestCase(code.loc, code, nothing, expect, true) :
+            BrokenTestCase(code.loc, "missing test code")
+        push!(suite, case)
+        code = nothing
+    end
+    while true
+        line = popfirst!(stack)
+        prompt = match(PROMPT_REGEX, line.val)
+        if prompt !== nothing
+            prompt[1] !== nothing && println(buf, prompt[1])
+            while !isempty(stack)
+                source = match(SOURCE_REGEX, stack[1].val)
+                source !== nothing || break
+                println(buf, source[1])
+                popfirst!(stack)
+            end
+            code !== nothing && addcase!(TextBlock(code.loc, ""))
+            code = TextBlock(line.loc, consumebuf!(buf))
+        else
+            println(buf, rstrip(line.val))
+            while !isempty(stack) && !occursin(PROMPT_REGEX, stack[1].val)
+                println(buf, rstrip(popfirst!(stack).val))
+            end
+            expect = TextBlock(line.loc, rstrip(consumebuf!(buf)))
+            code !== nothing && addcase!(expect)
+        end
+        if isempty(stack)
+            code !== nothing && addcase!(TextBlock(code.loc, ""))
+            break
+        end
+    end
+    suite
+end
+
+function consumebuf!(buf)
+    n = bytesavailable(seekstart(buf))
+    n > 0 ? String(take!(buf)) : ""
 end
 
 # Extract a test case from Julia source.
@@ -638,7 +694,7 @@ function parsecase!(stack::Vector{TextBlock})
         end
     end
     !isempty(code) || return BrokenTestCase(loc, "missing test code")
-    return TestCase(loc, collapse(code), collapse(pre), collapse(expect))
+    return TestCase(loc, collapse(code), collapse(pre), collapse(expect), false)
 end
 
 # Run a single test case.
@@ -703,7 +759,11 @@ function runtest(test::TestCase; subs=common_subs(), mod=nothing)
                         body = asexpr(test.code)
                         ans = Core.eval(mod, body)
                         if ans !== nothing && !no_output
-                            Base.invokelatest(show, io, ans)
+                            if test.repl
+                              Base.invokelatest(show, io, "text/plain", ans)
+                            else
+                              Base.invokelatest(show, io, ans)
+                            end
                         end
                     end
                 catch exc
@@ -746,10 +806,11 @@ end
 runtest(test::BrokenTestCase; subs=common_subs(), mod=nothing) =
     Error(test)
 
-runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs(), mod=nothing) =
+runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs(), mod=nothing, repl=false) =
     runtest(TestCase(loc, TextBlock(loc, code),
                      pre !== nothing ? TextBlock(loc, pre) : nothing,
-                     expect !== nothing ? TextBlock(loc, expect) : nothing),
+                     expect !== nothing ? TextBlock(loc, expect) : nothing,
+                     repl),
             subs=subs, mod=mod)
 
 # Convert expected output block to a regex.
