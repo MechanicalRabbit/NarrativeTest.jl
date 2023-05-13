@@ -180,14 +180,17 @@ extracted test cases.
         (3+4)*6
     Expected output:
         42
+
     Test case at …/sample_bad.md_:9
         2+2
     Expected output:
         5
+
     Test case at …/sample_bad.md_:13
         sqrt(-1)
     Expected output:
         0.0 + 1.0im
+
     Error at …/sample_bad.md_:17
         missing test code
     =#
@@ -228,14 +231,17 @@ fenced.
         (3+4)*6
     Expected output:
         42
+
     Test case at …/index.md:6
         2+2
     Expected output:
         5
+
     Test case at …/index.md:11
         print(2^16)
     Expected output:
         65526
+
     Test case at …/index.md:14
         sqrt(-1)
     Expected output:
@@ -313,10 +319,12 @@ single-line and multi-line expected output.
         2+2
     Expected output:
         4
+
     Test case at …/index.md:3
         print(2^16)
     Expected output:
         65526
+
     Test case at …/index.md:6
         display(collect('A':'Z'))
     Expected output:
@@ -325,6 +333,7 @@ single-line and multi-line expected output.
          'B'
          ⋮
          'Z'
+
     Test case at …/index.md:15
         Int
     Precondition:
@@ -405,12 +414,14 @@ Function `runtest()` takes a test case object and returns the test result.
         42
     Actual output:
         42
+
     Test failed at …/sample_bad.md_:9
         2+2
     Expected output:
         5
     Actual output:
         4
+
     Test failed at …/sample_bad.md_:13
         sqrt(-1)
     Expected output:

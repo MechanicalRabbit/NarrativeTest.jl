@@ -3,8 +3,11 @@
 using NarrativeTest
 
 # Workaround for https://github.com/JuliaLang/julia/pull/43787.
-function Base.display(d::TextDisplay, M::MIME"text/plain", @nospecialize x)
-    show(d.io, M, x)
+if VERSION < v"1.8-"
+    function Base.Multimedia.display(d::TextDisplay, M::MIME"text/plain", @nospecialize x)
+        show(d.io, M, x)
+        println(d.io)
+    end
 end
 
 # Handle filesystem paths under Windows.
