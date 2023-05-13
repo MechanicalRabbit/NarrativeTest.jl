@@ -20,7 +20,7 @@ Expected output:
     0.0 + 1.0im
 Actual output:
     ERROR: DomainError …
-    sqrt will only return a complex result if called with a complex argument. …
+    sqrt …
     Stacktrace:
      ⋮
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -104,14 +104,17 @@ Test case at …/sample_bad.md_:5
     (3+4)*6
 Expected output:
     42
+
 Test case at …/sample_bad.md_:9
     2+2
 Expected output:
     5
+
 Test case at …/sample_bad.md_:13
     sqrt(-1)
 Expected output:
     0.0 + 1.0im
+
 Error at …/sample_bad.md_:17
     missing test code
 =#
@@ -147,14 +150,17 @@ Test case at …/index.md:3
     (3+4)*6
 Expected output:
     42
+
 Test case at …/index.md:6
     2+2
 Expected output:
     5
+
 Test case at …/index.md:11
     print(2^16)
 Expected output:
     65526
+
 Test case at …/index.md:14
     sqrt(-1)
 Expected output:
@@ -214,10 +220,12 @@ Test case at …/index.md:1
     2+2
 Expected output:
     4
+
 Test case at …/index.md:3
     print(2^16)
 Expected output:
     65526
+
 Test case at …/index.md:6
     display(collect(&#39;A&#39;:&#39;Z&#39;))
 Expected output:
@@ -226,6 +234,7 @@ Expected output:
      &#39;B&#39;
      ⋮
      &#39;Z&#39;
+
 Test case at …/index.md:15
     Int
 Precondition:
@@ -283,12 +292,14 @@ Expected output:
     42
 Actual output:
     42
+
 Test failed at …/sample_bad.md_:9
     2+2
 Expected output:
     5
 Actual output:
     4
+
 Test failed at …/sample_bad.md_:13
     sqrt(-1)
 Expected output:
@@ -443,7 +454,7 @@ Expected output:
      …
 Actual output:
     ERROR: DomainError …
-    sqrt will only return a complex result if called with a complex argument. …
+    sqrt …
 =#</code></pre><p>In the expected output, we can use symbol <code>…</code> to match any number of characters in a line, and symbol <code>⋮</code> to match any number of lines.</p><pre><code class="language-julia hljs">result = runtest(@__FILE__, &quot;print(collect(&#39;A&#39;:&#39;Z&#39;))\n&quot;, expect=&quot;[&#39;A&#39;, &#39;B&#39;, …, &#39;Z&#39;]\n&quot;)
 display(result)
 #=&gt;
@@ -473,4 +484,4 @@ Actual output:
 =#</code></pre><p>A test case can be executed in the context of a specific module.</p><pre><code class="language-julia hljs">runtest(@__FILE__, &quot;hello = \&quot;Hello World!\&quot;&quot;, mod=Main)
 
 Main.hello
-#-&gt; &quot;Hello World!&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Monday 1 May 2023 01:25">Monday 1 May 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+#-&gt; &quot;Hello World!&quot;</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« API Reference</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.24 on <span class="colophon-date" title="Saturday 13 May 2023 22:09">Saturday 13 May 2023</span>. Using Julia version 1.9.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
