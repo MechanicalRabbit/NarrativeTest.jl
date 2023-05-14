@@ -1,6 +1,11 @@
 # Release Notes
 
 
+## v0.7.4
+
+* Enable precompilation.
+
+
 ## v0.7.3
 
 * Require Julia ≥ 1.6.
