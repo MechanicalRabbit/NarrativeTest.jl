@@ -12,7 +12,7 @@ using Test
 # Public interface.
 
 """
-    runtests(files; subs=common_subs(), mod=nothing, quiet=false) :: Bool
+    runtests(files; subs = common_subs(), mod = nothing, quiet = false) :: Bool
 
 Load the specified Markdown files to extract and run the embedded test cases.
 When a directory is passed, load all `*.md` files in the directory.  This
@@ -23,9 +23,9 @@ order to convert it to a regular expression.
 
 Specify `mod` to execute tests in the context of the given module.
 
-Set `quiet=true` to suppress all output except for error reports.
+Set `quiet = true` to suppress all output except for error reports.
 
-    runtests(; default=common_args(), subs=common_subs(), mod=nothing, quiet=false)
+    runtests(; default = common_args(), subs = common_subs(), mod = nothing, quiet = false)
 
 In this form, test files are specified as command-line parameters.  When
 invoked without parameters, tests are loaded from `*.md` files in the program
@@ -44,7 +44,7 @@ function runtests end
 
 """
     testset(files = nothing;
-            default=common_args(), subs=common_subs(), mod=nothing, quiet=false)
+            default = common_args(), subs = common_subs(), mod = nothing, quiet = false)
 
 Run NarrativeTest-based tests as a nested test set.  For example, invoke it in
 `test/runtests.jl`:
@@ -69,7 +69,7 @@ in order to convert it to a regular expression.
 
 Specify `mod` to execute tests in the context of the given module.
 
-Set `quiet=true` to suppress all output except for error reports.
+Set `quiet = true` to suppress all output except for error reports.
 
 """
 function testset end
@@ -297,12 +297,16 @@ const NORM = Esc(:normal)
 const CLRL = Esc("\r\e[K")
 
 struct Msg
-    args::Tuple
+    args::Vector{Any}
 end
 
-Msg(args...) = Msg(args)
+Msg(args...) = Msg(Any[args...])
 
-Base.show(io::IO, msg::Msg) = print(io, msg.args...)
+function Base.show(io::IO, msg::Msg)
+    for arg in msg.args
+        print(io, arg)
+    end
+end
 
 indicator(loc) =
     Msg(CLRL, BOLD, INFO, Esc("Testing " * string(loc)), NORM)
@@ -336,9 +340,17 @@ end
 indented(text::TextBlock) =
     indented(text.val)
 
+# Configuration of the test runner.
+
+struct Cfg
+    subs::Vector{Pair{Regex,SubstitutionString{String}}}
+    mod::Union{Module, Nothing}
+    quiet::Bool
+end
+
 # Implementation of `test/runtests.jl`.
 
-function runtests(; default=common_args(), subs=common_subs(), mod=nothing, quiet=false)
+function runtests(; default = common_args(), subs = common_subs(), mod = nothing, quiet = false)
     program_file = !isempty(PROGRAM_FILE) ? PROGRAM_FILE : "runtests.jl"
     files = String[]
     for (i, arg) in enumerate(ARGS)
@@ -363,17 +375,20 @@ function runtests(; default=common_args(), subs=common_subs(), mod=nothing, quie
     if isempty(files)
         files = default
     end
-    exit(!runtests(files, subs=subs, mod=mod, quiet=quiet))
+    exit(!runtests(findmd(files), Cfg(subs, mod, quiet)))
 end
 
-function runtests(files; subs=common_subs(), mod=nothing, quiet=false)
-    files = vcat(String[], findmd.(files)...)
+runtests(files; subs = common_subs(), mod = nothing, quiet = false) =
+    runtests(findmd(files), Cfg(subs, mod, quiet))
+
+function runtests(files, cfg)
+    quiet = cfg.quiet
     passed = failed = skipped = errors = 0
     for file in files
         suite = parsemd(file)
         for test in suite
             quiet || print(stderr, indicator(location(test)))
-            res = runtest(test, subs=subs, mod=mod)
+            res = runtest(test, cfg)
             if res isa Union{Fail, Error}
                 quiet || print(stderr, CLRL)
                 print(SEPARATOR)
@@ -398,8 +413,11 @@ end
 
 # Compatibility with the Test package.
 
-function testset(files = nothing; default=common_args(), subs=common_subs(), mod=nothing, quiet=false)
-    files = vcat(String[], findmd.(something(files, default))...)
+testset(files = nothing; default = common_args(), subs = common_subs(), mod = nothing, quiet = false) =
+    testset(findmd(something(files, default)), Cfg(subs, mod, quiet))
+
+function testset(files, cfg)
+    quiet = cfg.quiet
     ts = Test.DefaultTestSet("NarrativeTest")
     pass = fail = error = 0
     for file in files
@@ -408,7 +426,7 @@ function testset(files = nothing; default=common_args(), subs=common_subs(), mod
         suite = parsemd(file)
         for test in suite
             quiet || print(stderr, indicator(location(test)))
-            res = runtest(test, subs=subs, mod=mod)
+            res = runtest(test, cfg)
             pass += res isa Pass
             fail += res isa Fail
             error += res isa Error
@@ -462,10 +480,10 @@ common_subs() = [
 
 # Find `*.md` files in the given directory.
 
-function findmd(base)
-    isdir(base) || return [base]
+function findmd(base::AbstractString)
+    isdir(base) || return String[base]
     mdfiles = String[]
-    for (root, dirs, files) in walkdir(base, follow_symlinks=true)
+    for (root, dirs, files) in walkdir(base, follow_symlinks = true)
         for file in files
             if splitext(file)[2] == ".md"
                 push!(mdfiles, joinpath(root, file))
@@ -475,6 +493,9 @@ function findmd(base)
     sort!(mdfiles)
     return mdfiles
 end
+
+findmd(files::AbstractVector) =
+    String[mdfile for file in files for mdfile in findmd(file)]
 
 # Load a file and extract the embedded tests.
 
@@ -644,15 +665,105 @@ end
 # Run a single test case.
 
 """
-    runtest(test::TestCase; subs=common_subs(), mod=nothing) :: AbstractResult
-    runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs(), mod=nothing) :: AbstractResult
+    runtest(test::TestCase; subs = common_subs(), mod = nothing) :: AbstractResult
+    runtest(loc, code; pre = nothing, expect = nothing, subs = common_subs(), mod = nothing) :: AbstractResult
 
 Run the given test case, return the result.
 """
-function runtest(test::TestCase; subs=common_subs(), mod=nothing)
-    # Suppress printing of the output value?
+runtest(test; subs = common_subs(), mod = nothing) =
+    runtest(test, Cfg(subs, mod, false))
+
+runtest(loc, code; pre = nothing, expect = nothing, subs = common_subs(), mod = nothing) =
+    runtest(TestCase(loc, TextBlock(loc, code),
+                     pre !== nothing ? TextBlock(loc, pre) : nothing,
+                     expect !== nothing ? TextBlock(loc, expect) : nothing),
+            Cfg(subs, mod, false))
+
+function runtest(test::TestCase, cfg)
     no_output = endswith(test.code.val, ";\n") || test.expect === nothing
-    # Generate a module object for running the test code.
+    mod = make_module(test, cfg)
+    pipe = Pipe()
+    Base.link_pipe!(pipe; reader_supports_async=true, writer_supports_async=false)
+    trace = StackTraces.StackTrace()
+    skipped = false
+    output = Ref("")
+    @sync begin
+        @async begin
+            # Read the output of the test.
+            output[] = read(pipe.out, String)
+            close(pipe.out)
+        end
+        # Replace the standard output/error with a pipe.
+        orig_have_color = Base.have_color
+        Core.eval(Base, :(have_color = false))
+        orig_stdout = stdout
+        orig_stderr = stderr
+        redirect_stdout(pipe.in)
+        redirect_stderr(pipe.in)
+        io = IOContext(pipe.in, :limit=>true, :module=>mod)
+        pushdisplay(TextDisplay(io))
+        # Run the test code and print the result.
+        stacktop = length(stacktrace())
+        try
+            filename = abspath(test.loc.file)
+            tls = task_local_storage()
+            has_source_path = haskey(tls, :SOURCE_PATH)
+            source_path = get(tls, :SOURCE_PATH, nothing)
+            tls[:SOURCE_PATH] = filename
+            try
+                if test.pre !== nothing
+                    pre_body = asexpr(test.pre)
+                    pre = Core.eval(mod, pre_body)
+                    pre::Bool
+                    if !pre
+                        skipped = true
+                    end
+                end
+                if !skipped
+                    body = asexpr(test.code)
+                    ans = Core.eval(mod, body)
+                    if ans !== nothing && !no_output
+                        Base.invokelatest(show, io, ans)
+                    end
+                end
+            catch exc
+                append!(trace, stacktrace(catch_backtrace())[1:end-stacktop])
+                print(stderr, "ERROR: ")
+                Base.invokelatest(showerror, stderr, exc, trace; backtrace=false)
+            end
+            println(io)
+            if has_source_path
+                tls[:SOURCE_PATH] = source_path
+            else
+                delete!(tls, :SOURCE_PATH)
+            end
+        finally
+            # Restore the standard output/error.
+            popdisplay()
+            redirect_stderr(orig_stderr)
+            redirect_stdout(orig_stdout)
+            Core.eval(Base, :(have_color = $orig_have_color))
+            close(pipe.in)
+        end
+    end
+    if skipped
+        return Skip(test)
+    end
+    # Compare the actual output with the expected output and generate the result.
+    expect = test.expect !== nothing ? rstrip(test.expect.val) : ""
+    actual = rstrip(join(map(rstrip, eachline(IOBuffer(output[]))), "\n"))
+    return expect == actual || occursin(expect2regex(expect, cfg.subs), actual) ?
+        Pass(test, actual) :
+        Fail(test, actual, trace)
+end
+
+runtest(test::BrokenTestCase, cfg) =
+    Error(test)
+
+# Generate a module object for running the test code.
+
+function make_module(test, cfg)
+    mod = cfg.mod
     if mod === nothing
         modid = Base.PkgId(module_name(test.loc.file))
         if Base.root_module_exists(modid)
@@ -666,91 +777,8 @@ function runtest(test::TestCase; subs=common_subs(), mod=nothing)
             Base.register_root_module(mod)
         end
     end
-    # Replace the standard output/error with a pipe.
-    orig_have_color = Base.have_color
-    Core.eval(Base, :(have_color = false))
-    orig_stdout = stdout
-    orig_stderr = stderr
-    pipe = Pipe()
-    Base.link_pipe!(pipe; reader_supports_async=true, writer_supports_async=false)
-    io = IOContext(pipe.in, :limit=>true, :module=>mod)
-    redirect_stdout(pipe.in)
-    redirect_stderr(pipe.in)
-    pushdisplay(TextDisplay(io))
-    trace = StackTraces.StackTrace()
-    skipped = false
-    output = ""
-    @sync begin
-        @async begin
-            # Run the test code and print the result.
-            stacktop = length(stacktrace())
-            try
-                filename = abspath(test.loc.file)
-                tls = task_local_storage()
-                has_source_path = haskey(tls, :SOURCE_PATH)
-                source_path = get(tls, :SOURCE_PATH, nothing)
-                tls[:SOURCE_PATH] = filename
-                try
-                    if test.pre !== nothing
-                        pre_body = asexpr(test.pre)
-                        pre = Core.eval(mod, pre_body)
-                        pre::Bool
-                        if !pre
-                            skipped = true
-                        end
-                    end
-                    if !skipped
-                        body = asexpr(test.code)
-                        ans = Core.eval(mod, body)
-                        if ans !== nothing && !no_output
-                            Base.invokelatest(show, io, ans)
-                        end
-                    end
-                catch exc
-                    trace = stacktrace(catch_backtrace())[1:end-stacktop]
-                    print(stderr, "ERROR: ")
-                    Base.invokelatest(showerror, stderr, exc, trace; backtrace=false)
-                end
-                println(io)
-                if has_source_path
-                    tls[:SOURCE_PATH] = source_path
-                else
-                    delete!(tls, :SOURCE_PATH)
-                end
-            finally
-                # Restore the standard output/error.
-                popdisplay()
-                redirect_stderr(orig_stderr)
-                redirect_stdout(orig_stdout)
-                Core.eval(Base, :(have_color = $orig_have_color))
-                close(pipe.in)
-            end
-        end
-        @async begin
-            # Read the output of the test.
-            output = read(pipe.out, String)
-            close(pipe.out)
-        end
-    end
-    if skipped
-        return Skip(test)
-    end
-    # Compare the actual output with the expected output and generate the result.
-    expect = test.expect !== nothing ? rstrip(test.expect.val) : ""
-    actual = rstrip(join(map(rstrip, eachline(IOBuffer(output))), "\n"))
-    return expect == actual || occursin(expect2regex(expect, subs), actual) ?
-        Pass(test, actual) :
-        Fail(test, actual, trace)
+    return mod
 end
-
-runtest(test::BrokenTestCase; subs=common_subs(), mod=nothing) =
-    Error(test)
-
-runtest(loc, code; pre=nothing, expect=nothing, subs=common_subs(), mod=nothing) =
-    runtest(TestCase(loc, TextBlock(loc, code),
-                     pre !== nothing ? TextBlock(loc, pre) : nothing,
-                     expect !== nothing ? TextBlock(loc, expect) : nothing),
-            subs=subs, mod=mod)
 
 # Convert expected output block to a regex.
 
@@ -767,5 +795,32 @@ function module_name(file)
     file = relpath(abspath(file), abspath(dirname(PROGRAM_FILE)))
     return join(titlecase.(split(file, r"[^0-9A-Za-z]+")))
 end
+
+# Precompilation.
+
+function _precompile_()
+    ccall(:jl_generating_output, Cint, ()) == 1 || return
+
+    precompile(Tuple{typeof(runtests)})
+    precompile(Tuple{typeof(runtests), String})
+    precompile(Tuple{typeof(runtests), Vector{String}})
+    precompile(Tuple{typeof(testset)})
+    precompile(Tuple{typeof(testset), String})
+    precompile(Tuple{typeof(testset), Vector{String}})
+
+    precompile(Tuple{Type{TestCase}, Location, TextBlock, Nothing, Nothing})
+    precompile(Tuple{Type{TestCase}, Location, TextBlock, Nothing, TextBlock})
+    precompile(Tuple{Type{TestCase}, Location, TextBlock, TextBlock, Nothing})
+    precompile(Tuple{Type{TestCase}, Location, TextBlock, TextBlock, TextBlock})
+
+    for T in Any[TestCase, BrokenTestCase, Pass, Fail, Skip, Error, Summary]
+        precompile(Tuple{typeof(show), Base.TTY, MIME"text/plain", T})
+    end
+
+    precompile(Tuple{typeof(println), Base.TTY, Msg})
+    precompile(Tuple{typeof(print), Base.TTY, Esc})
+end
+
+_precompile_()
 
 end
