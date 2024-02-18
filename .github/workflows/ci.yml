@@ -6,9 +6,6 @@ on:
   pull_request:
   schedule:
   - cron: '0 0 1 * *'
-permissions:
-  actions: write
-  contents: read
 jobs:
   test:
     name: ${{ matrix.name }}
