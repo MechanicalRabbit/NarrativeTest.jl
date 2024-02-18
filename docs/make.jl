@@ -4,13 +4,13 @@ using Documenter
 using NarrativeTest
 
 # Highlight indented code blocks as Julia code.
-using Documenter.Expanders: ExpanderPipeline, Selectors, Markdown, iscode
-abstract type DefaultLanguage <: ExpanderPipeline end
+using Documenter: Expanders, Selectors, MarkdownAST, iscode
+abstract type DefaultLanguage <: Expanders.ExpanderPipeline end
 Selectors.order(::Type{DefaultLanguage}) = 99.0
 Selectors.matcher(::Type{DefaultLanguage}, node, page, doc) =
     iscode(node, "")
 Selectors.runner(::Type{DefaultLanguage}, node, page, doc) =
-    page.mapping[node] = Markdown.Code("julia", node.code)
+    node.element = MarkdownAST.CodeBlock("julia", node.element.code)
 
 makedocs(
     sitename = "NarrativeTest.jl",
@@ -21,7 +21,10 @@ makedocs(
         "reference.md",
         "test.md",
     ],
-    modules = [NarrativeTest])
+    modules = [NarrativeTest],
+    doctest = false,
+    repo = Remotes.GitHub("MechanicalRabbit", "NarrativeTest.jl"),
+)
 
 deploydocs(
     repo = "github.com/MechanicalRabbit/NarrativeTest.jl.git",
