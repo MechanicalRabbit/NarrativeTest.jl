@@ -97,6 +97,9 @@ code.
     run(`$julia -e 'using NarrativeTest; runtests()' $pwd/sample_bad.md_`);
     #=>
     ⋮
+    Tests passed: 1
+    Tests failed: 2
+    Errors: 1
     TESTING UNSUCCESSFUL!
     ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
     =#
@@ -104,13 +107,54 @@ code.
 Invoke the script with `--help` to get a brief help on available options.
 
     run(`$julia -e 'using NarrativeTest; runtests()' -- --help`);
-    #=>
-    Usage: runtests.jl [-q|--quiet] [FILE]...
-    =#
+    #-> Usage: runtests.jl [-q|--quiet] [-x|--exitfirst] [--maxfail=N] [FILE]...
 
-Add `--quiet` to suppress extra output.
+Add `-q` or `--quiet` to suppress extra output.
 
     run(`$julia -e 'using NarrativeTest; runtests()' -- --quiet $pwd/sample_good.md_`);
+
+Add `-x` or `--exitfirst` to exit on the first failure.
+
+    run(`$julia -e 'using NarrativeTest; runtests()' -- --exitfirst $pwd/sample_bad.md_`);
+    #=>
+    ⋮
+    STOPPING ON THE FIRST ERROR!
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Tests passed: 1
+    Tests failed: 1
+    TESTING UNSUCCESSFUL!
+    ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
+    =#
+
+Alternatively, add `--maxfail` to specify the maximum number of failures.
+
+    run(`$julia -e 'using NarrativeTest; runtests()' -- --maxfail 2 $pwd/sample_bad.md_`);
+    #=>
+    ⋮
+    STOPPING AFTER 2 ERRORS!
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Tests passed: 1
+    Tests failed: 2
+    TESTING UNSUCCESSFUL!
+    ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
+    =#
+
+    run(`$julia -e 'using NarrativeTest; runtests()' -- --maxfail=2 $pwd/sample_bad.md_`);
+    #=>
+    ⋮
+    STOPPING AFTER 2 ERRORS!
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Tests passed: 1
+    Tests failed: 2
+    TESTING UNSUCCESSFUL!
+    ERROR: failed process: Process(` … `, ProcessExited(1)) [1]
+    =#
+
+    run(`$julia -e 'using NarrativeTest; runtests()' -- --maxfail two $pwd/sample_bad.md_`);
+    #=>
+    runtests.jl: option '--maxfail' expects an integer argument
+    ERROR: failed process: Process(` … `, ProcessExited(2)) [2]
+    =#
 
 Use `--` to separate options from regular parameters.
 

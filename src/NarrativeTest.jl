@@ -12,7 +12,7 @@ using Test
 # Public interface.
 
 """
-    runtests(files; subs = common_subs(), mod = nothing, quiet = false) :: Bool
+    runtests(files; subs = common_subs(), mod = nothing, quiet = false, exitfirst = false, maxfail = nothing) :: Bool
 
 Load the specified Markdown files to extract and run the embedded test cases.
 When a directory is passed, load all `*.md` files in the directory.  This
@@ -25,7 +25,10 @@ Specify `mod` to execute tests in the context of the given module.
 
 Set `quiet = true` to suppress all output except for error reports.
 
-    runtests(; default = common_args(), subs = common_subs(), mod = nothing, quiet = false)
+Set `exitfirst = true` to exit on first error or failure.  Alternatively,
+use `maxfail` to set maximum allowable number of errors or failures.
+
+    runtests(; default = common_args(), subs = common_subs(), mod = nothing, quiet = false, exitfirst = false, maxfail = nothing)
 
 In this form, test files are specified as command-line parameters.  When
 invoked without parameters, tests are loaded from `*.md` files in the program
@@ -44,7 +47,7 @@ function runtests end
 
 """
     testset(files = nothing;
-            default = common_args(), subs = common_subs(), mod = nothing, quiet = false)
+            default = common_args(), subs = common_subs(), mod = nothing, quiet = false, exitfirst = false, maxfail = nothing)
 
 Run NarrativeTest-based tests as a nested test set.  For example, invoke it in
 `test/runtests.jl`:
@@ -316,6 +319,8 @@ const SUCCESS =
     Msg(BOLD, GOOD, "TESTING SUCCESSFUL!", NORM)
 const FAILURE =
     Msg(BOLD, WARN, "TESTING UNSUCCESSFUL!", NORM)
+MAXFAIL(N) =
+    Msg(BOLD, WARN, N > 1 ? "STOPPING AFTER $N ERRORS!" : "STOPPING ON THE FIRST ERROR!", NORM)
 
 const SEPARATOR = "~"^72 * "\n"
 
@@ -346,23 +351,38 @@ struct Cfg
     subs::Vector{Pair{Regex,SubstitutionString{String}}}
     mod::Union{Module, Nothing}
     quiet::Bool
+    maxfail::Int
 end
 
 # Implementation of `test/runtests.jl`.
 
-function runtests(; default = common_args(), subs = common_subs(), mod = nothing, quiet = false)
+function runtests(; default = common_args(), subs = common_subs(), mod = nothing, quiet = false, exitfirst = false, maxfail = nothing)
     program_file = !isempty(PROGRAM_FILE) ? PROGRAM_FILE : "runtests.jl"
     files = String[]
-    for (i, arg) in enumerate(ARGS)
+    i = 0
+    while i < length(ARGS)
+        i += 1
+        arg = ARGS[i]
         if startswith(arg, '-')
             if arg == "--"
                 append!(files, ARGS[i+1:end])
                 break
             elseif arg == "-h" || arg == "--help"
-                println("Usage: $program_file [-q|--quiet] [FILE]...")
+                println("Usage: $program_file [-q|--quiet] [-x|--exitfirst] [--maxfail=N] [FILE]...")
                 exit(0)
             elseif arg == "-q" || arg == "--quiet"
                 quiet = true
+            elseif arg == "-x" || arg == "--exitfirst"
+                exitfirst = true
+            elseif arg == "--maxfail" || startswith(arg, "--maxfail=")
+                maxfail =
+                    arg == "--maxfail" && i < length(ARGS) ? (i += 1; tryparse(Int, ARGS[i])) :
+                    startswith(arg, "--maxfail=") ? tryparse(Int, arg[11:end]) :
+                    nothing
+                if maxfail === nothing
+                    println(stderr, """$program_file: option '--maxfail' expects an integer argument""")
+                    exit(2)
+                end
             else
                 println(stderr, """$program_file: unrecognized option '$arg'
                                    Try '$program_file --help' for more information.""")
@@ -375,11 +395,11 @@ function runtests(; default = common_args(), subs = common_subs(), mod = nothing
     if isempty(files)
         files = default
     end
-    exit(!runtests(findmd(files), Cfg(subs, mod, quiet)))
+    exit(!runtests(findmd(files), Cfg(subs, mod, quiet, something(maxfail, Int(exitfirst)))))
 end
 
-runtests(files; subs = common_subs(), mod = nothing, quiet = false) =
-    runtests(findmd(files), Cfg(subs, mod, quiet))
+runtests(files; subs = common_subs(), mod = nothing, quiet = false, exitfirst = false, maxfail = nothing) =
+    runtests(findmd(files), Cfg(subs, mod, quiet, something(maxfail, Int(exitfirst))))
 
 function runtests(files, cfg)
     quiet = cfg.quiet
@@ -398,9 +418,14 @@ function runtests(files, cfg)
             failed += res isa Fail
             skipped += res isa Skip
             errors += res isa Error
+            if 0 < cfg.maxfail <= failed + errors
+                quiet || println(stderr, MAXFAIL(cfg.maxfail))
+                @goto exit
+            end
         end
         quiet || print(stderr, CLRL)
     end
+    @label exit
     summary = Summary(passed, failed, skipped, errors)
     success = failed == 0 && errors == 0
     if !success
@@ -413,8 +438,8 @@ end
 
 # Compatibility with the Test package.
 
-testset(files = nothing; default = common_args(), subs = common_subs(), mod = nothing, quiet = false) =
-    testset(findmd(something(files, default)), Cfg(subs, mod, quiet))
+testset(files = nothing; default = common_args(), subs = common_subs(), mod = nothing, quiet = false, exitfirst = false) =
+    testset(findmd(something(files, default)), Cfg(subs, mod, quiet, exitfirst))
 
 function testset(files, cfg)
     quiet = cfg.quiet
@@ -671,13 +696,13 @@ end
 Run the given test case, return the result.
 """
 runtest(test; subs = common_subs(), mod = nothing) =
-    runtest(test, Cfg(subs, mod, false))
+    runtest(test, Cfg(subs, mod, false, false))
 
 runtest(loc, code; pre = nothing, expect = nothing, subs = common_subs(), mod = nothing) =
     runtest(TestCase(loc, TextBlock(loc, code),
                      pre !== nothing ? TextBlock(loc, pre) : nothing,
                      expect !== nothing ? TextBlock(loc, expect) : nothing),
-            Cfg(subs, mod, false))
+            Cfg(subs, mod, false, false))
 
 function runtest(test::TestCase, cfg)
     no_output = endswith(test.code.val, ";\n") || test.expect === nothing
