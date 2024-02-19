@@ -1,6 +1,11 @@
 # Release Notes
 
 
+## v0.7.5
+
+* Add `-x/--exitfirst` and `--maxfail=N` options.
+
+
 ## v0.7.4
 
 * Enable precompilation.
