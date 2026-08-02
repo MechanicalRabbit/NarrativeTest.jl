@@ -254,7 +254,7 @@ Base.show(io::IO, mime::MIME"text/plain", error::Error) =
     show(io, mime, error.test)
 
 Base.convert(::Type{Test.Result}, error::Error) =
-    Test.Error(:test, error.test.msg, nothing, false,
+    Test.Error(:test, error.test.msg, nothing, nothing,
                convert(LineNumberNode, error.test))
 
 # Summary of the testing results.
@@ -456,11 +456,9 @@ function testset(files, cfg)
             fail += res isa Fail
             error += res isa Error
             if res isa Pass
-                file_ts.n_passed += 1
+                Test.record(file_ts, convert(Test.Result, res))
             elseif res isa Union{Fail, Error}
-                push!(file_ts.results, convert(Test.Result, res))
-                file_ts.anynonpass = true
-                ts.anynonpass = true
+                Test.record(file_ts, convert(Test.Result, res), print_result = false)
                 quiet || print(stderr, CLRL)
                 print(SEPARATOR)
                 show(stdout, MIME"text/plain"(), res)
@@ -468,12 +466,14 @@ function testset(files, cfg)
         end
         quiet || print(stderr, CLRL)
     end
-    if ts.anynonpass
+    tc = Test.get_test_counts(ts)
+    anynonpass = tc isa Tuple ? tc[2] + tc[3] + tc[6] + tc[7] > 0 : tc.fails + tc.errors + tc.cumulative_fails + tc.cumulative_errors > 0
+    if anynonpass
         print(SEPARATOR)
     end
     if Test.get_testset_depth() > 0
         Test.record(Test.get_testset(), ts)
-    elseif ts.anynonpass
+    elseif anynonpass
         throw(Test.TestSetException(pass, fail, error, 0, []))
     end
     ts
