@@ -605,6 +605,17 @@ Macros `@__MODULE__`, `@__DIR__`, `@__FILE__`, `@__LINE__` properly report the
 location of the test code.
 
     result = runtest(@__FILE__, "println(@__MODULE__)", expect=string(@__MODULE__))
+    #? VERSION < v"1.12"
+    display(result)
+    #=>
+    Test passed at …/index.md
+        println(@__MODULE__)
+    Expected output:
+        IndexMd
+    Actual output:
+        IndexMd
+    =#
+    #? VERSION >= v"1.12"
     display(result)
     #=>
     Test passed at …/index.md
