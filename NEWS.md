@@ -1,6 +1,12 @@
 # Release Notes
 
 
+## v0.7.6
+
+* Require Julia ≥ 1.10.
+* Fix test failures under recent versions of Julia.
+
+
 ## v0.7.5
 
 * Add `-x/--exitfirst` and `--maxfail=N` options.
