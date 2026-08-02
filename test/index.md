@@ -610,9 +610,9 @@ location of the test code.
     Test passed at …/index.md
         println(@__MODULE__)
     Expected output:
-        IndexMd
+        Main.IndexMd
     Actual output:
-        IndexMd
+        Main.IndexMd
     =#
 
     result = runtest(@__FILE__, "println(@__DIR__)", expect=@__DIR__)
